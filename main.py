@@ -18,20 +18,34 @@ class Stopwatch:
     def start(self):
         self.running = True
         self.startTime = time.time()
+        
 
     def pause(self):
-    	timeAtStop = time.time()
-    	totalTime = timeAtStop - self.startTime
-    	self.accumulatedSeconds += totalTime
-    	self.running = False
-    	self.startTime = None
+        timeAtStop = time.time()
+        totalTime = timeAtStop - self.startTime
+        self.accumulatedSeconds += totalTime
+        self.running = False
+        self.startTime = None
+        
        
-
     def get_elapsed(self):
-    	if self.running:
-    		return self.accumulatedSeconds + (time.time()-self.startTime)
-    	else:
-    		return self.accumulatedSeconds
+        if self.running:
+            return self.accumulatedSeconds + (time.time()-self.startTime)
+            
+        else:
+            return self.accumulatedSeconds
+    
+    def lap(self):
+        for sibling in self.children:
+            if sibling.running is True:
+                sibling.pause()
+        child = Stopwatch("lap",self)
+        self.children.append(child)
+        child.start()
+        return child
+    
+    
+    
        
 def timeformat(total_seconds):
     total_seconds = int(total_seconds)
@@ -48,22 +62,27 @@ class MyApp(Gtk.Application):
     def do_activate(self):
         window = Gtk.ApplicationWindow(application=self)
         window.set_title("Stopwatch")
-        window.set_default_size(300, 200)
+        window.set_default_size(500, 300)
+        self.children_labels = {}
         
-        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
-        box.set_margin_top(20)
-        box.set_margin_bottom(20)
-        box.set_margin_start(20)
-        box.set_margin_end(20)
+        self.box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
+        self.box.set_margin_top(20)
+        self.box.set_margin_bottom(20)
+        self.box.set_margin_start(20)
+        self.box.set_margin_end(20)
 
         self.label = Gtk.Label(label="00:00:00")
-        box.append(self.label)
+        self.box.append(self.label)
 
         self.button = Gtk.Button(label="Start")
         self.button.connect("clicked", self.on_button_clicked)
-        box.append(self.button)
+        self.box.append(self.button)
+        
+        self.lapButton = Gtk.Button(label="lap")
+        self.lapButton.connect("clicked",self.on_lap_clicked)
+        self.box.append(self.lapButton)
 
-        window.set_child(box)
+        window.set_child(self.box)
         window.present()
         
         GLib.timeout_add(1000, self.on_tick)
@@ -71,6 +90,9 @@ class MyApp(Gtk.Application):
     def on_button_clicked(self, button):
         if self.stopwatch.running:
             self.stopwatch.pause()
+            for child in self.stopwatch.children:
+                if child.running is True:
+                    child.pause()
             self.button.set_label("start")
         else:
             self.stopwatch.start()
@@ -80,12 +102,41 @@ class MyApp(Gtk.Application):
     def on_tick(self):
         self.update_label()
         return True
+    
+    def on_lap_clicked(self, button):
+        self.new_child = self.stopwatch.lap()
+        self.new_child_label = Gtk.Label(label="00:00:00")
+        self.children_labels[self.new_child.id] = self.new_child_label
+        
+        self.child_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
+        # child_box.set_margin_top(20)
+        # child_box.set_margin_bottom(20)
+        # child_box.set_margin_start(20)
+        # child_box.set_margin_end(20)
+        self.child_box.append(self.new_child_label)
+        self.box.append(self.child_box)
+        print("yo")
+        self.update_label()
         
     def update_label(self):
         elapsed = self.stopwatch.get_elapsed()
         self.label.set_text(timeformat(elapsed))
+        for child in self.stopwatch.children:
+            id_child = self.children_labels[child.id]
+            id_child.set_text(timeformat(child.get_elapsed()))
+            time = child.get_elapsed()
+            print(time)
+    
+    
+        
+   
         
     #print("button was clicked")
-
+    
+        
+   
+    
+    
+        
 app = MyApp()
 app.run()

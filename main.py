@@ -46,6 +46,8 @@ class Stopwatch:
     
     
     
+    
+    
        
 def timeformat(total_seconds):
     total_seconds = int(total_seconds)
@@ -57,13 +59,16 @@ def timeformat(total_seconds):
 class MyApp(Gtk.Application):
     def __init__(self):
         super().__init__(application_id='com.realchill07.stopwatch')
-        self.stopwatch = Stopwatch("Inital Stopwatch")
 
     def do_activate(self):
         window = Gtk.ApplicationWindow(application=self)
         window.set_title("Stopwatch")
         window.set_default_size(500, 300)
+        
+        self.projects = []
+        
         self.children_labels = {}
+        self.parent_labels ={}
         
         self.box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
         self.box.set_margin_top(20)
@@ -71,69 +76,105 @@ class MyApp(Gtk.Application):
         self.box.set_margin_start(20)
         self.box.set_margin_end(20)
 
-        self.label = Gtk.Label(label="00:00:00")
-        self.box.append(self.label)
+        # self.stopwatch.child = None
 
-        self.button = Gtk.Button(label="Start")
-        self.button.connect("clicked", self.on_button_clicked)
-        self.box.append(self.button)
-        
-        self.lapButton = Gtk.Button(label="lap")
-        self.lapButton.connect("clicked",self.on_lap_clicked)
-        self.box.append(self.lapButton)
+        self.createButton = Gtk.Button(label="New")
+        self.createButton.connect("clicked",self.on_create_clicked)
+        self.box.append(self.createButton)
 
         window.set_child(self.box)
         window.present()
         
         GLib.timeout_add(1000, self.on_tick)
          
-    def on_button_clicked(self, button):
-        if self.stopwatch.running:
-            self.stopwatch.pause()
-            for child in self.stopwatch.children:
+    def on_start_clicked(self, button, sw):
+        if sw.running:
+            sw.pause()
+            for child in sw.children:
                 if child.running is True:
                     child.pause()
-            self.button.set_label("start")
+            button.set_label("Start")
         else:
-            self.stopwatch.start()
-            self.button.set_label("pause")
+            if not sw.children:
+                self.on_lap_clicked("clicked", sw)
+                # self.stopwatch.child = 1
+            sw.start()
+            button.set_label("Pause")
         self.update_label()
         
     def on_tick(self):
         self.update_label()
         return True
     
-    def on_lap_clicked(self, button):
-        self.new_child = self.stopwatch.lap()
+    def on_lap_clicked(self, button, sw):
+        self.new_child = sw.lap()
         self.new_child_label = Gtk.Label(label="00:00:00")
         self.children_labels[self.new_child.id] = self.new_child_label
+        
         
         self.child_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
         # child_box.set_margin_top(20)
         # child_box.set_margin_bottom(20)
         # child_box.set_margin_start(20)
         # child_box.set_margin_end(20)
+        
+        self.start_pauseButton(self.child_box, self.new_child)
         self.child_box.append(self.new_child_label)
+       
+                        
+        # self.lapButton = Gtk.Button(label="lap")
+        # self.lapButton.connect("clicked",lambda widget, sw = self.new_child:self.on_lap_clicked(widget,sw))
+        # self.child_box.append(self.lapButton)
+                
         self.box.append(self.child_box)
         print("yo")
         self.update_label()
         
     def update_label(self):
-        elapsed = self.stopwatch.get_elapsed()
-        self.label.set_text(timeformat(elapsed))
-        for child in self.stopwatch.children:
-            id_child = self.children_labels[child.id]
-            id_child.set_text(timeformat(child.get_elapsed()))
-            time = child.get_elapsed()
-            print(time)
+        for parent in self.projects:
+            time_parent = parent.get_elapsed()
+            parent_id = self.parent_labels[parent.id]
+            parent_id.set_text(timeformat(time_parent))
+            for child in parent.children:
+                time_child = child.get_elapsed()
+                id_child = self.children_labels[child.id]
+                id_child.set_text(timeformat(time_child))
     
     
+    def on_create_clicked(self, button):
+        self.created_parent = self.createParent()
         
-   
+        self.created_parent_label = Gtk.Label(label="00:00:00")
+        self.parent_labels[self.created_parent.id] = self.created_parent_label
+        self.projects.append(self.created_parent)
+        self.parent_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing = 5)
+        self.parent_box.append(self.created_parent_label)
+        self.box.append(self.parent_box)
+        
+        self.start_pauseButton(self.box, self.created_parent)
+        
+        self.lapButton = Gtk.Button(label="lap")
+        self.lapButton.connect("clicked",lambda widget, sw = self.created_parent:self.on_lap_clicked(widget,sw))
+        self.box.append(self.lapButton)
+                
+        self.update_label()
+        print("parent")
+        
+        
+    def createParent(self):
+            stopwatch = Stopwatch("New Project")
+            return stopwatch
         
     #print("button was clicked")
     
-        
+    def start_pauseButton(self,position,sw):
+        if position == "child.box":
+            label_to_put = "Pause"
+        else:
+            label_to_put = "Start"
+        self.startButton = Gtk.Button(label=label_to_put)
+        self.startButton.connect("clicked",lambda widget, sw = sw:self.on_start_clicked(widget,sw))
+        position.append(self.startButton)
    
     
     

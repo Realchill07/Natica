@@ -39,16 +39,24 @@ class Stopwatch:
         for sibling in self.children:
             if sibling.running is True:
                 sibling.pause()
+        if not self.running:
+            self.start()        
         child = Stopwatch("lap",self)
         self.children.append(child)
         child.start()
         return child
     
-    
-    
-    
-    
-       
+    def resume(self):
+        daddy = self.parent
+        if daddy.running:
+            for baby in daddy.children:
+                if baby.running:
+                    baby.pause()
+        else:
+            daddy.start()
+        self.start()
+      
+           
 def timeformat(total_seconds):
     total_seconds = int(total_seconds)
     hours = total_seconds // 3600
@@ -68,7 +76,8 @@ class MyApp(Gtk.Application):
         self.projects = []
         
         self.children_labels = {}
-        self.parent_labels ={}
+        self.parent_labels = {}
+        self.button_labels = {}
         
         self.box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
         self.box.set_margin_top(20)
@@ -89,16 +98,29 @@ class MyApp(Gtk.Application):
          
     def on_start_clicked(self, button, sw):
         if sw.running:
+            mommy = sw.parent
+            if mommy is not None:
+                mommy.pause()
+                mommy_button = self.button_labels[mommy.id]
+                mommy_button.set_label("Start")
             sw.pause()
             for child in sw.children:
                 if child.running is True:
                     child.pause()
             button.set_label("Start")
         else:
+            mommy = sw.parent
             if not sw.children:
                 self.on_lap_clicked("clicked", sw)
-                # self.stopwatch.child = 1
-            sw.start()
+            if sw.parent is None:
+                sw.start()
+            else:
+                sw.resume()
+            if mommy is not None:
+                mommy.start()
+                mommy_button = self.button_labels[mommy.id]
+                mommy_button.set_label("Pause")
+            
             button.set_label("Pause")
         self.update_label()
         
@@ -153,7 +175,7 @@ class MyApp(Gtk.Application):
         
         self.start_pauseButton(self.box, self.created_parent)
         
-        self.lapButton = Gtk.Button(label="lap")
+        self.lapButton = Gtk.Button(label="Lap")
         self.lapButton.connect("clicked",lambda widget, sw = self.created_parent:self.on_lap_clicked(widget,sw))
         self.box.append(self.lapButton)
                 
@@ -168,15 +190,14 @@ class MyApp(Gtk.Application):
     #print("button was clicked")
     
     def start_pauseButton(self,position,sw):
-        if position == "child.box":
+        if sw.parent is not None:
             label_to_put = "Pause"
         else:
             label_to_put = "Start"
         self.startButton = Gtk.Button(label=label_to_put)
         self.startButton.connect("clicked",lambda widget, sw = sw:self.on_start_clicked(widget,sw))
+        self.button_labels[sw.id] = self.startButton
         position.append(self.startButton)
-   
-    
     
         
 app = MyApp()

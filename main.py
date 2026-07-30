@@ -3,7 +3,8 @@ import time
 import uuid
 
 gi.require_version('Gtk', '4.0')
-from gi.repository import Gtk,GLib
+gi.require_version('Adw','1.0')
+from gi.repository import Gtk,GLib,Adw
 
 class Stopwatch:
     def __init__(self, name, parent=None):

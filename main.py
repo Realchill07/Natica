@@ -112,7 +112,7 @@ class MyApp(Gtk.Application):
             mommy = sw.parent
             if not sw.children:
                 self.on_lap_clicked("clicked", sw)
-            if sw.parent is None:
+            if mommy is None:
                 sw.start()
             else:
                 sw.resume()

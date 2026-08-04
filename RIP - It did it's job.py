@@ -3,7 +3,7 @@ import time
 import uuid
 
 gi.require_version('Gtk', '4.0')
-gi.require_version('Adw','1.0')
+gi.require_version('Adw','1')
 from gi.repository import Gtk,GLib,Adw
 
 class Stopwatch:
@@ -199,7 +199,19 @@ class MyApp(Gtk.Application):
         self.startButton.connect("clicked",lambda widget, sw = sw:self.on_start_clicked(widget,sw))
         self.button_labels[sw.id] = self.startButton
         position.append(self.startButton)
-    
+        
+    def create_page(name):
+        page = Gtk.Box(orientation=Gtk.orientation.VERTICAL, spacing = 10)
+        
+        page.set_margin_top(20)
+        page.set_margin_bottom(20)
+        page.set_margin_start(20)
+        page.set_margin_end(20)
+        
+        label = Gtk.Label(label=name)
+        page.append(label)
+        
+        return page
         
 app = MyApp()
 app.run()

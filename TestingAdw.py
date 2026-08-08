@@ -5,7 +5,7 @@ import uuid
 gi.require_version('Adw','1')
 gi.require_version('Gtk','4.0')
 
-from gi.repository import Adw,Gtk
+from gi.repository import Adw,Gtk, GLib
 
 Adw.init()
 
@@ -73,6 +73,7 @@ class MyApp(Adw.Application):
   def __init__(self):
     super().__init__(application_id = 'com.Realchill.Natica')
     self.projects = []
+    self.project_label = {}
   
   def do_activate(self):
     window = Adw.ApplicationWindow(application = self)
@@ -145,6 +146,8 @@ class MyApp(Adw.Application):
     window.set_content(toolbar)
     window.present()
     
+    GLib.timeout_add(1000, self.on_tick)
+    
   def create_home_page(self):
     page = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing = 10)
                 
@@ -199,6 +202,10 @@ class MyApp(Adw.Application):
     label.set_hexpand(True)
     project.append(label)
     
+    time_label = Gtk.Label(label = '00:00:00')
+    self.project_label[stopwatch.id] = time_label
+    project.append(time_label)
+    
     start = Gtk.Button(label = 'Start')
     start.connect("clicked",self.on_start_clicked,stopwatch)
     project.append(start)
@@ -227,6 +234,16 @@ class MyApp(Adw.Application):
       return
     self.stack.set_visible_child_name(self.pages[row.get_index()][1])
     
+  def update_labels(self):
+    for stopwatch in self.projects:
+      elapsed = stopwatch.get_elapsed()
+      
+      label = self.project_label[stopwatch.id]
+      label.set_label(timeformat(elapsed))
+    
+  def on_tick(self):
+    self.update_labels()
+    return True
                 
 
 test = MyApp()

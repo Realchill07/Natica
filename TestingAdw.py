@@ -200,7 +200,7 @@ class MyApp(Adw.Application):
     project.append(label)
     
     start = Gtk.Button(label = 'Start')
-    start.connect("clicked",self.on_start_clicked,stopwatch)
+    start.connect("clicked",self.on_start_clicked,stopwatch )
     project.append(start)
     
     return project

@@ -62,7 +62,7 @@ def timeformat(total_seconds):
     total_seconds = int(total_seconds)
     hours = total_seconds // 3600
     minutes = (total_seconds % 3600) // 60
-    seconds = total_seconds % 60
+    seconds = total_seconds % 60class Stopwatch:
     return f"{hours:02d}:{minutes:02d}:{seconds:02d}"
     
 class MyApp(Gtk.Application):

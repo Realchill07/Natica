@@ -21,11 +21,15 @@ class Stopwatch:
         self.parent = parent
 
     def start(self):
+        if self.running:
+          return
         self.running = True
         self.startTime = time.time()
         
 
     def pause(self):
+        if not self.running:
+          return
         timeAtStop = time.time()
         totalTime = timeAtStop - self.startTime
         self.accumulatedSeconds += totalTime
@@ -195,20 +199,13 @@ class MyApp(Adw.Application):
       return page
   
   def create_project_only_for_ui(self, stopwatch):
-    project = Gtk.Box(orientation = Gtk.Orientation.HORIZONTAL, spacing = 5)
+    project = project_row(stopwatch)
     
-    label = Gtk.Label(label = stopwatch.name)
-    label.set_halign(Gtk.Align.START)
-    label.set_hexpand(True)
-    project.append(label)
+    project.THE_button.connect("clicked",self.on_start_clicked,stopwatch)
     
-    time_label = Gtk.Label(label = '00:00:00')
-    self.project_label[stopwatch.id] = time_label
-    project.append(time_label)
+    project.child_button.connect("clicked", self.on_add_child,stopwatch, project)
     
-    start = Gtk.Button(label = 'Start')
-    start.connect("clicked",self.on_start_clicked,stopwatch)
-    project.append(start)
+    self.project_label[stopwatch.id] = project.time_label
     
     return project
     
@@ -224,9 +221,8 @@ class MyApp(Adw.Application):
       stopwatch.pause()
       button.set_label("Start")
     else : 
-      stopwatch.start()
+      self.stopwatch_start(stopwatch)
       button.set_label("Pause")
-    print(stopwatch.running)
     
       
   def change_page(self, listbox, row):
@@ -234,17 +230,75 @@ class MyApp(Adw.Application):
       return
     self.stack.set_visible_child_name(self.pages[row.get_index()][1])
     
+  def update_stopwatch_label(self, stopwatch):
+    elapsed = stopwatch.get_elapsed()
+
+    label = self.project_label[stopwatch.id]
+    label.set_label(timeformat(elapsed))
+
+    for child in stopwatch.children:
+      self.update_stopwatch_label(child)
+        
   def update_labels(self):
     for stopwatch in self.projects:
-      elapsed = stopwatch.get_elapsed()
-      
-      label = self.project_label[stopwatch.id]
-      label.set_label(timeformat(elapsed))
+        self.update_stopwatch_label(stopwatch)
     
   def on_tick(self):
     self.update_labels()
     return True
+  
+  def on_add_child(self, button, parent, parent_widget):
+    child = Stopwatch('New Task', parent)
+  
+    parent.children.append(child)
+    
+    child_widget = self.create_project_only_for_ui(child)
+    
+    parent_widget.children_box.append(child_widget)  
+    
+  def stopwatch_start(self, stopwatch):
+    parent = stopwatch.parent
+      
+    if parent is not None:
+      for sibling in parent.children:
+        if sibling.running and sibling is not stopwatch:
+          sibling.pause()
+        if not parent.running:
+          parent.start() 
                 
+      stopwatch.start()    
+            
+class project_row(Gtk.Box):
+  def __init__(self, stopwatch):
+    super().__init__(orientation=Gtk.Orientation.VERTICAL, spacing = 10)
+    
+    self.stopwatch = stopwatch
+    
+    #row for parents
+    self.row = Gtk.Box(orientation = Gtk.Orientation.HORIZONTAL, spacing = 5)
+    
+    self.name_label = Gtk.Label(label = stopwatch.name)
+    self.name_label.set_halign(Gtk.Align.START)
+    self.name_label.set_hexpand(True)
+    self.row.append(self.name_label)
+    
+    self.time_label = Gtk.Label(label = '00:00:00')
+    self.row.append(self.time_label)
+    
+    self.THE_button = Gtk.Button(label = 'Start')
+    self.row.append(self.THE_button)
+      
+    self.child_button = Gtk.Button(label = '+')
+    self.row.append(self.child_button)
+    
+    #row for each children... duh
+    self.children_box = Gtk.Box(orientation= Gtk.Orientation.HORIZONTAL, spacing = 7)
+    self.children_box.set_margin_start(25)
+    
+    self.append(self.row)
+    self.append(self.children_box)
+    
+    
 
 test = MyApp()
 test.run()

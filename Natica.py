@@ -202,7 +202,7 @@ class MyApp(Adw.Application):
     project = project_row(stopwatch)
     
     project.THE_button.connect("clicked",self.on_start_clicked,stopwatch)
-    
+
     project.child_button.connect("clicked", self.on_add_child,stopwatch, project)
     
     self.project_label[stopwatch.id] = project.time_label
@@ -215,6 +215,8 @@ class MyApp(Adw.Application):
     
     project_widget = self.create_project_only_for_ui(stopwatch)
     self.projects_list.append(project_widget)
+    
+    self.on_add_child(stopwatch, project_widget)
     
   def on_start_clicked(self, button, stopwatch):
     if stopwatch.running:
@@ -263,10 +265,11 @@ class MyApp(Adw.Application):
       for sibling in parent.children:
         if sibling.running and sibling is not stopwatch:
           sibling.pause()
+          self.update_stopwatch_label(sibling)
         if not parent.running:
           parent.start() 
                 
-      stopwatch.start()    
+    stopwatch.start()    
             
 class project_row(Gtk.Box):
   def __init__(self, stopwatch):
@@ -292,7 +295,7 @@ class project_row(Gtk.Box):
     self.row.append(self.child_button)
     
     #row for each children... duh
-    self.children_box = Gtk.Box(orientation= Gtk.Orientation.HORIZONTAL, spacing = 7)
+    self.children_box = Gtk.Box(orientation= Gtk.Orientation.VERTICAL, spacing = 7)
     self.children_box.set_margin_start(25)
     
     self.append(self.row)

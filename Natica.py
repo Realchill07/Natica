@@ -78,6 +78,7 @@ class MyApp(Adw.Application):
     super().__init__(application_id = 'com.Realchill.Natica')
     self.projects = []
     self.project_label = {}
+    self.project_buttons = {}
   
   def do_activate(self):
     window = Adw.ApplicationWindow(application = self)
@@ -202,10 +203,10 @@ class MyApp(Adw.Application):
     project = project_row(stopwatch)
     
     project.THE_button.connect("clicked",self.on_start_clicked,stopwatch)
-
-
+    
     project.child_button.connect("clicked", self.on_add_child,stopwatch, project)
     
+    self.project_buttons[stopwatch.id] = project.THE_button
     self.project_label[stopwatch.id] = project.time_label
     
     return project
@@ -221,13 +222,10 @@ class MyApp(Adw.Application):
     
   def on_start_clicked(self, button, stopwatch):
     if stopwatch.running:
-      stopwatch.pause()
-      button.set_label("Start")
+      self.pause_stopwatch(stopwatch)
     else : 
-      self.stopwatch_start(stopwatch)
-      button.set_label("Pause")
-    
-      
+      self.start_stopwatch(stopwatch)
+       
   def change_page(self, listbox, row):
     if row is None:
       return
@@ -270,7 +268,49 @@ class MyApp(Adw.Application):
           parent.start() 
                 
     stopwatch.start()    
-            
+    
+  def update_button_label(self, stopwatch):
+    button = self.project_buttons[stopwatch.id]
+    
+    if stopwatch.running:
+      button.set_label("Pause")
+    else:
+      button.set_label("Resume")
+      
+  def start_stopwatch(self, stopwatch):
+    parent = stopwatch.parent
+    
+    if parent is not None:
+      for sibling in parent.children:
+        if sibling is not stopwatch and sibling.running:
+          sibling.pause()
+          self.update_button_label(sibling)
+    
+    while parent is not None:
+      if not parent.running:
+        parent.start()
+        
+      self.update_button_label(parent)
+      parent = parent.parent
+    
+    stopwatch.start()
+    self.update_button_label(stopwatch) 
+    
+  def pause_stopwatch(self, stopwatch):
+    parent = stopwatch.parent
+    stopwatch.pause()
+    self.update_button_label(stopwatch)
+    
+    for child in stopwatch.children:
+      if child.running:
+        child.pause_stopwatch(child)
+    
+    if parent is not None:
+      any_child_running = any(child.running for child in parent.children)
+      if not any_child_running:
+        parent.pause()
+        self.update_button_label(parent)
+           
 class project_row(Gtk.Box):
   def __init__(self, stopwatch):
     super().__init__(orientation=Gtk.Orientation.VERTICAL, spacing = 10)

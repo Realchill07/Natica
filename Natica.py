@@ -203,6 +203,7 @@ class MyApp(Adw.Application):
     
     project.THE_button.connect("clicked",self.on_start_clicked,stopwatch)
 
+
     project.child_button.connect("clicked", self.on_add_child,stopwatch, project)
     
     self.project_label[stopwatch.id] = project.time_label
@@ -216,7 +217,7 @@ class MyApp(Adw.Application):
     project_widget = self.create_project_only_for_ui(stopwatch)
     self.projects_list.append(project_widget)
     
-    self.on_add_child(stopwatch, project_widget)
+    self.on_add_child(None, stopwatch, project_widget)
     
   def on_start_clicked(self, button, stopwatch):
     if stopwatch.running:
@@ -265,7 +266,6 @@ class MyApp(Adw.Application):
       for sibling in parent.children:
         if sibling.running and sibling is not stopwatch:
           sibling.pause()
-          self.update_stopwatch_label(sibling)
         if not parent.running:
           parent.start() 
                 

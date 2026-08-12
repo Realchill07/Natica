@@ -202,9 +202,13 @@ class MyApp(Adw.Application):
   def create_project_only_for_ui(self, stopwatch):
     project = project_row(stopwatch)
     
-    project.THE_button.connect("clicked",self.on_start_clicked,stopwatch)
+    project.THE_button.connect("clicked",self.on_start_clicked, stopwatch)
     
-    project.child_button.connect("clicked", self.on_add_child,stopwatch, project)
+    project.child_button.connect("clicked", self.on_add_child, stopwatch, project)
+    
+    project.name_entry.connect("activate", self.edit_project_name, stopwatch, project)
+    
+    project.edit_button.connect("clicked", self.edit_project_name, stopwatch, project)
     
     self.project_buttons[stopwatch.id] = project.THE_button
     self.project_label[stopwatch.id] = project.time_label
@@ -310,6 +314,28 @@ class MyApp(Adw.Application):
       if not any_child_running:
         parent.pause()
         self.update_button_label(parent)
+        
+  def edit_project_name(self, button, stopwatch, project):
+    if not project.editing:
+      project.editing = True
+      
+      project.name_entry.set_text(stopwatch.name)
+      project.name_entry.select_region(0,-1)
+      project.name_stack.set_visible_child_name("entry")
+      
+      project.edit_button.set_label('Save')
+      project.name_entry.grab_focus()
+      
+    else:
+      new_name = project.name_entry.get_text().strip()
+      
+      if new_name:
+        stopwatch.name = new_name
+        project.name_label.set_label(stopwatch.name)
+        
+      project.name_stack.set_visible_child_name("label")
+      project.edit_button.set_label("Edit")
+      project.editing = False
            
 class project_row(Gtk.Box):
   def __init__(self, stopwatch):
@@ -320,17 +346,37 @@ class project_row(Gtk.Box):
     #row for parents
     self.row = Gtk.Box(orientation = Gtk.Orientation.HORIZONTAL, spacing = 5)
     
+    self.name_stack = Gtk.Stack()
+    self.row.append(self.name_stack)
+    
+    #entry for renaming the stopwatch
+    self.name_entry = Gtk.Entry()
+    self.name_entry.set_text(stopwatch.name)
+    
+    #Name label for the stopwatch
     self.name_label = Gtk.Label(label = stopwatch.name)
     self.name_label.set_halign(Gtk.Align.START)
     self.name_label.set_hexpand(True)
-    self.row.append(self.name_label)
     
+    self.name_stack.add_named(self.name_label,"label")
+    self.name_stack.add_named(self.name_entry,"entry")
+    self.name_stack.set_visible_child_name("label")
+    self.name_stack.set_hexpand(True)
+    
+    #Timer label
     self.time_label = Gtk.Label(label = '00:00:00')
     self.row.append(self.time_label)
     
+    #Edit Button
+    self.editing = False
+    self.edit_button = Gtk.Button(label = "Edit")
+    self.row.append(self.edit_button)
+    
+    #Button to resume/start/pause the stopwatch
     self.THE_button = Gtk.Button(label = 'Start')
     self.row.append(self.THE_button)
       
+    #Button to add a child 
     self.child_button = Gtk.Button(label = '+')
     self.row.append(self.child_button)
     

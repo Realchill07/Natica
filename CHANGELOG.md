@@ -12,3 +12,5 @@ August 9 - Made a seperate class for each project in the projects page for bette
 August 10 - Minor bug fix
 
 August 11 - A child is automatically created when a new project is made, button label reflects the current state of children and parent's
+
+August 13 - Added data persistance across different sessions using JSON 

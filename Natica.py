@@ -1,6 +1,8 @@
 import gi
 import time
 import uuid
+import os
+import json
 
 gi.require_version('Adw','1')
 gi.require_version('Gtk','4.0')
@@ -65,6 +67,31 @@ class Stopwatch:
             daddy.start()
         self.start()
       
+    def to_dict(self):
+      return {
+        "id": self.id,
+        "name": self.name,
+        "accumulatedSeconds": self.accumulatedSeconds,
+        "startTime": self.startTime,
+        "running": self.running,
+        "children": [child.to_dict() for child in self.children]
+    }  
+      
+    @classmethod
+    
+    def from_dict(cls, data, parent = None):
+      stopwatch = cls(
+        data['name'], parent
+      )
+      stopwatch.id = data['id']
+      stopwatch.accumulatedSeconds = data['accumulatedSeconds']
+      stopwatch.startTime = data['startTime']
+      stopwatch.running = data['running']
+      
+      for child_data in data["children"]:
+        child = cls.from_dict(child_data, stopwatch)
+        stopwatch.children.append(child)
+      return stopwatch
            
 def timeformat(total_seconds):
     total_seconds = int(total_seconds)
@@ -79,10 +106,12 @@ class MyApp(Adw.Application):
     self.projects = []
     self.project_label = {}
     self.project_buttons = {}
+    self.storage = Storage()
+    self.projects = self.storage.load()
   
   def do_activate(self):
     window = Adw.ApplicationWindow(application = self)
-    window.set_title('testing UI')
+    window.set_title('Natica')
     window.set_default_size(500,500)
     
     header=Adw.HeaderBar()
@@ -112,9 +141,9 @@ class MyApp(Adw.Application):
     self.stack.add_named(self.create_page("Settings"), "settings")
     
     
-    # This is for sidebar i.e. ("this is displayed in sidebar","kind of an id")
     self.pages = [
       ("🏠 Home",'home'),
+    # This is for sidebar i.e. ("this is displayed in sidebar","kind of an id")
       ("📁 Projects",'projects'),
       ('📊 Reports','reports'),
       ('📈 Statistics','stats'),
@@ -184,6 +213,10 @@ class MyApp(Adw.Application):
     self.projects_list.set_vexpand(True)
     page.append(self.projects_list)
     
+    for stopwatch in self.projects:
+      project_widget = self.create_project_only_for_ui(stopwatch)
+      self.projects_list.append(project_widget)
+    
     return page
     
   
@@ -213,6 +246,10 @@ class MyApp(Adw.Application):
     self.project_buttons[stopwatch.id] = project.THE_button
     self.project_label[stopwatch.id] = project.time_label
     
+    for child in stopwatch.children:
+      child_widget = self.create_project_only_for_ui(child)
+      project.children_box.append(child_widget)
+    
     return project
     
   def on_click_new_project(self, button):
@@ -223,6 +260,8 @@ class MyApp(Adw.Application):
     self.projects_list.append(project_widget)
     
     self.on_add_child(None, stopwatch, project_widget)
+    
+    self.storage.save(self.projects)
     
   def on_start_clicked(self, button, stopwatch):
     if stopwatch.running:
@@ -260,7 +299,9 @@ class MyApp(Adw.Application):
     child_widget = self.create_project_only_for_ui(child)
     
     parent_widget.children_box.append(child_widget)  
-    
+  
+    self.storage.save(self.projects)  
+  
   def stopwatch_start(self, stopwatch):
     parent = stopwatch.parent
       
@@ -307,7 +348,7 @@ class MyApp(Adw.Application):
     
     for child in stopwatch.children:
       if child.running:
-        child.pause_stopwatch(child)
+        self.pause_stopwatch(child)
     
     if parent is not None:
       any_child_running = any(child.running for child in parent.children)
@@ -335,8 +376,29 @@ class MyApp(Adw.Application):
         
       project.name_stack.set_visible_child_name("label")
       project.edit_button.set_label("Edit")
-      project.editing = False
-           
+      project.editing = False   
+    
+    
+    self.storage.save(self.projects)
+  
+  def interrupt_running_timers(self):
+    for project in self.projects:
+      self.interrupt_stopwatch(project)
+   
+  def interrupt_stopwatch(self, stopwatch):
+    if stopwatch.running:
+      stopwatch.pause()
+    for child in stopwatch.children:
+      self.interrupt_stopwatch(child)
+      
+  def prepare_for_close(self):
+    self.interrupt_running_timers()
+    self.storage.save(self.projects)
+    
+  def do_shutdown(self):
+    self.prepare_for_close()
+    Adw.Application.do_shutdown(self)
+             
 class project_row(Gtk.Box):
   def __init__(self, stopwatch):
     super().__init__(orientation=Gtk.Orientation.VERTICAL, spacing = 10)
@@ -387,7 +449,43 @@ class project_row(Gtk.Box):
     self.append(self.row)
     self.append(self.children_box)
     
+class Storage:
+  def __init__(self):
+    self.directory = os.path.expanduser(
+      "~/.local/share/natica"
+    )
+    self.file_path = os.path.join(
+      self.directory, "data.json"
+    )
+    os.makedirs(
+      self.directory, exist_ok = True
+    )
     
-
+  def save(self, projects):
+    data = {
+      "projects": [
+        project.to_dict()
+        for project in projects   
+      ]
+    }
+    
+    with open (self.file_path, "w") as file:
+      json.dump(data, file, indent = 2)
+      
+  def load(self):
+    if not os.path.exists(self.file_path):
+      return []
+    
+    with open (self.file_path, "r") as file:
+      data = json.load(file)
+      
+    projects = []
+    
+    for project_data in data['projects']:
+      project = Stopwatch.from_dict(project_data)
+      projects.append(project)
+      
+    return projects
+  
 test = MyApp()
 test.run()

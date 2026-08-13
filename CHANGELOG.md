@@ -14,3 +14,4 @@ August 10 - Minor bug fix
 August 11 - A child is automatically created when a new project is made, button label reflects the current state of children and parent's
 
 August 13 - Added data persistance across different sessions using JSON 
+P.S. - Going to work on it only on Thursdays from now on

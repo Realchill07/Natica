@@ -12,7 +12,7 @@ from gi.repository import Adw,Gtk, GLib
 
 Adw.init()
 
-
+#Stopwatch framework and some core functions
 class Stopwatch:
     def __init__(self, name, parent=None):
         self.id = str(uuid.uuid4())
@@ -132,9 +132,7 @@ class MyApp(Adw.Application):
     sidebar.set_margin_bottom(10)
     sidebar.set_margin_start(10)
     sidebar.set_margin_end(10)
-    
-
-    
+     
     self.stack.add_named(self.create_home_page(),'home')
     self.stack.add_named(self.create_projects_page(),'projects')
     self.stack.add_named(self.create_page("Reports"), "reports")
@@ -151,7 +149,6 @@ class MyApp(Adw.Application):
       ("⚙ Settings", "settings"),
     ]
     
-  
     for title, page_name in self.pages:
       row = Gtk.ListBoxRow()
       
@@ -220,7 +217,7 @@ class MyApp(Adw.Application):
     
     return page
     
-  
+  #boilerplate for upcoming pages
   def create_page(self,name):
       page = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing = 10)
                   
@@ -230,7 +227,9 @@ class MyApp(Adw.Application):
       page.set_margin_end(20)
                   
       label = Gtk.Label(label=name)
+      coming_soon = Gtk.Label(label = "Coming soon...")
       page.append(label)
+      page.append(coming_soon)
       return page
   
   def create_project_only_for_ui(self, stopwatch):
@@ -253,6 +252,7 @@ class MyApp(Adw.Application):
     
     return project
     
+  #Create the object from class Stopwatch
   def on_click_new_project(self, button):
     stopwatch = Stopwatch("New Project")
     self.projects.append(stopwatch)
@@ -263,18 +263,21 @@ class MyApp(Adw.Application):
     self.on_add_child(None, stopwatch, project_widget)
     
     self.storage.save(self.projects)
-    
+  
+  #Decides which function runs for when THE_button is clicked
   def on_start_clicked(self, button, stopwatch):
     if stopwatch.running:
       self.pause_stopwatch(stopwatch)
     else : 
       self.start_stopwatch(stopwatch)
-       
+  
+  #Switches the pages when we click on them through the sidebar     
   def change_page(self, listbox, row):
     if row is None:
       return
     self.stack.set_visible_child_name(self.pages[row.get_index()][1])
-    
+  
+  #Updates time lapsed for each project
   def update_stopwatch_label(self, stopwatch):
     elapsed = stopwatch.get_elapsed()
 
@@ -283,15 +286,18 @@ class MyApp(Adw.Application):
 
     for child in stopwatch.children:
       self.update_stopwatch_label(child)
-        
+  
+  #Helper function      
   def update_labels(self):
     for stopwatch in self.projects:
         self.update_stopwatch_label(stopwatch)
-    
+
+  #Helper function for the forementioned helper function
   def on_tick(self):
     self.update_labels()
     return True
   
+  #Creates an object of the class stopwatch but his time as a child for an exisiting stopwatch
   def on_add_child(self, button, parent, parent_widget):
     child = Stopwatch('New Task', parent)
   
@@ -301,20 +307,9 @@ class MyApp(Adw.Application):
     
     parent_widget.children_box.append(child_widget)  
   
-    self.storage.save(self.projects)  
-  
-  def stopwatch_start(self, stopwatch):
-    parent = stopwatch.parent
-      
-    if parent is not None:
-      for sibling in parent.children:
-        if sibling.running and sibling is not stopwatch:
-          sibling.pause()
-        if not parent.running:
-          parent.start() 
-                
-    stopwatch.start()    
+    self.storage.save(self.projects)     
     
+  #Changes the label of THE_button 
   def update_button_label(self, stopwatch):
     button = self.project_buttons[stopwatch.id]
     
@@ -322,7 +317,8 @@ class MyApp(Adw.Application):
       button.set_label("Pause")
     else:
       button.set_label("Resume")
-      
+
+  #The class which handles when a subtask or a task is resumed or started
   def start_stopwatch(self, stopwatch):
     parent = stopwatch.parent
     
@@ -341,7 +337,8 @@ class MyApp(Adw.Application):
     
     stopwatch.start()
     self.update_button_label(stopwatch) 
-    
+  
+  #The class which handles when a subtask or a task is paused
   def pause_stopwatch(self, stopwatch):
     parent = stopwatch.parent
     stopwatch.pause()
@@ -356,7 +353,8 @@ class MyApp(Adw.Application):
       if not any_child_running:
         parent.pause()
         self.update_button_label(parent)
-        
+  
+  #Function to edit a task or subtask's name
   def edit_project_name(self, button, stopwatch, project):
     if not project.editing:
       project.editing = True
@@ -381,25 +379,30 @@ class MyApp(Adw.Application):
     
     
     self.storage.save(self.projects)
-  
-  def interrupt_running_timers(self):
-    for project in self.projects:
-      self.interrupt_stopwatch(project)
-   
+    
+  # Function which activates when the window is closed, so that next time the app is opened and data is loaded the task timer doesnt include the period when the app was closed
   def interrupt_stopwatch(self, stopwatch):
     if stopwatch.running:
       stopwatch.pause()
     for child in stopwatch.children:
       self.interrupt_stopwatch(child)
-      
+  
+  #Helper function for interrup_stopwatch
+  def interrupt_running_timers(self):
+    for project in self.projects:
+      self.interrupt_stopwatch(project)
+   
+  #calls the helper function and saves the data in a save file
   def prepare_for_close(self):
     self.interrupt_running_timers()
     self.storage.save(self.projects)
-    
+
+  #Calls for the above function and then lets the application based on Adw(Libadwaita) do its normal shutdown procedure 
   def do_shutdown(self):
     self.prepare_for_close()
     Adw.Application.do_shutdown(self)
-             
+
+#If we consider the class Stopwatch to be the framework, this class is like how that framework is showed/displayed in the app
 class project_row(Gtk.Box):
   def __init__(self, stopwatch):
     super().__init__(orientation=Gtk.Orientation.VERTICAL, spacing = 10)
@@ -449,7 +452,8 @@ class project_row(Gtk.Box):
     
     self.append(self.row)
     self.append(self.children_box)
-    
+
+#Class that handles storing the data and some of the functions relevant to it since 2 of the functions related to storage lives in the class Stopwatch
 class Storage:
   def __init__(self):
     if platform.system() == "Windows":

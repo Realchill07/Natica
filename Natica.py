@@ -3,6 +3,7 @@ import time
 import uuid
 import os
 import json
+import platform
 
 gi.require_version('Adw','1')
 gi.require_version('Gtk','4.0')
@@ -451,15 +452,15 @@ class project_row(Gtk.Box):
     
 class Storage:
   def __init__(self):
-    self.directory = os.path.expanduser(
-      "~/.local/share/natica"
-    )
-    self.file_path = os.path.join(
-      self.directory, "data.json"
-    )
-    os.makedirs(
-      self.directory, exist_ok = True
-    )
+    if platform.system() == "Windows":
+      base_directory = os.environ.get("LOCALAPPDATA")
+      self.directory = os.path.join(base_directory,"Natica")
+    else:
+      self.directory = os.path.expanduser("~/.local/share/natica")
+
+    self.file_path = os.path.join(self.directory,"data.json")
+
+    os.makedirs(self.directory,exist_ok=True)
     
   def save(self, projects):
     data = {

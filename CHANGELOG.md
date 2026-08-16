@@ -17,3 +17,5 @@ August 13 - Added data persistance across different sessions using JSON
 P.S. - Going to work on it only on Thursdays from now on
 
 August 14 - Updated storage class so that it saves the data wether it be windows or linux
+
+August 16 - Added deletion of projects and tasks and a confirmation window for deletion along with it

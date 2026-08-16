@@ -111,9 +111,9 @@ class MyApp(Adw.Application):
     self.projects = self.storage.load()
   
   def do_activate(self):
-    window = Adw.ApplicationWindow(application = self)
-    window.set_title('Natica')
-    window.set_default_size(500,500)
+    self.window = Adw.ApplicationWindow(application = self)
+    self.window.set_title('Natica')
+    self.window.set_default_size(500,500)
     
     header=Adw.HeaderBar()
     title = Gtk.Label(label='Natica')
@@ -175,8 +175,8 @@ class MyApp(Adw.Application):
     toolbar.add_top_bar(header)
     toolbar.set_content(main_box)
     
-    window.set_content(toolbar)
-    window.present()
+    self.window.set_content(toolbar)
+    self.window.present()
     
     GLib.timeout_add(1000, self.on_tick)
     
@@ -240,6 +240,8 @@ class MyApp(Adw.Application):
     project = project_row(stopwatch)
     
     project.THE_button.connect("clicked",self.on_start_clicked, stopwatch)
+    
+    project.delete_button.connect("clicked", self.on_delete_clicked, stopwatch, project)
     
     project.child_button.connect("clicked", self.on_add_child, stopwatch, project)
     
@@ -405,6 +407,33 @@ class MyApp(Adw.Application):
   def do_shutdown(self):
     self.prepare_for_close()
     Adw.Application.do_shutdown(self)
+    
+  def on_delete_clicked(self, button, stopwatch, widget):
+    
+    dialog = Adw.AlertDialog.new("Delete Project?", f'Delete  "{stopwatch.name}"?')
+    
+    dialog.add_response("cancel", 'Cancel')
+    dialog.add_response("delete", "Delete")
+    
+    dialog.set_response_appearance("delete", Adw.ResponseAppearance.DESTRUCTIVE)
+    
+    dialog.set_default_response("cancel")
+    dialog.set_close_response("cancel")
+    
+    dialog.connect("response", self.delete_on_response, stopwatch, widget)
+    dialog.present(self.window)
+    
+  def delete_on_response(self, dialog, response, stopwatch, widget):
+    if response != "delete":
+      return
+    if stopwatch.parent is None:
+      self.projects.remove(stopwatch)
+    else:
+      stopwatch.parent.children.remove(stopwatch)
+      
+    widget.unparent()
+    
+    self.storage.save(self.projects)
 
 #If we consider the class Stopwatch to be the framework, this class is like how that framework is showed/displayed in the app
 class project_row(Gtk.Box):
@@ -445,6 +474,10 @@ class project_row(Gtk.Box):
     #Button to resume/start/pause the stopwatch
     self.THE_button = Gtk.Button(label = 'Start')
     self.row.append(self.THE_button)
+    
+    #BUtton to delete
+    self.delete_button = Gtk.Button(label = 'Delete')
+    self.row.append(self.delete_button)
       
     #Button to add a child 
     self.child_button = Gtk.Button(label = '+')

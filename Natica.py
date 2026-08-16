@@ -103,7 +103,7 @@ def timeformat(total_seconds):
 
 class MyApp(Adw.Application):
   def __init__(self):
-    super().__init__(application_id = 'com.Realchill.Natica')
+    super().__init__(application_id = 'io.github.realchill07.Natica')
     self.projects = []
     self.project_label = {}
     self.project_buttons = {}
@@ -208,8 +208,12 @@ class MyApp(Adw.Application):
     page.append(button)
     
     self.projects_list = Gtk.Box(orientation = Gtk.Orientation.VERTICAL, spacing = 8)
-    self.projects_list.set_vexpand(True)
-    page.append(self.projects_list)
+    
+    scroll = Gtk.ScrolledWindow()
+    scroll.set_hexpand(True)
+    scroll.set_vexpand(True)
+    scroll.set_child(self.projects_list)
+    page.append(scroll)
     
     for stopwatch in self.projects:
       project_widget = self.create_project_only_for_ui(stopwatch)

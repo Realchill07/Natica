@@ -1,0 +1,24 @@
+app-id: io.github.realchill07.Natica
+
+runtime: org.gnome.Platform
+runtime-version: "49"
+sdk: org.gnome.Sdk
+
+command: natica
+
+finish-args:
+  - --share=ipc
+  - --socket=wayland
+  - --socket=fallback-x11
+  - --device=dri
+
+modules:
+  - name: natica
+    buildsystem: simple
+
+    build-commands:
+      - install -Dm755 Natica.py /app/bin/natica
+
+    sources:
+      - type: dir
+        path: .

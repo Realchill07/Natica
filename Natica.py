@@ -412,7 +412,7 @@ class MyApp(Adw.Application):
     
     dialog = Adw.AlertDialog.new("Delete Project?", f'Delete  "{stopwatch.name}"?')
     
-    dialog.add_response("cancel", 'Cancel')
+    dialog.add_response("cancel", "Cancel")
     dialog.add_response("delete", "Delete")
     
     dialog.set_response_appearance("delete", Adw.ResponseAppearance.DESTRUCTIVE)

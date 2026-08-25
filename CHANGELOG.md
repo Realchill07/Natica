@@ -19,3 +19,5 @@ P.S. - Going to work on it only on Thursdays from now on
 August 14 - Updated storage class so that it saves the data wether it be windows or linux
 
 August 16 - Added deletion of projects and tasks and a confirmation window for deletion along with it
+
+August 21 - Decided logo of the app

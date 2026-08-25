@@ -109,9 +109,13 @@ class MyApp(Adw.Application):
     self.project_buttons = {}
     self.storage = Storage()
     self.projects = self.storage.load()
+    
+  def on_window_close(self, window):
+        self.quit()
   
   def do_activate(self):
     self.window = Adw.ApplicationWindow(application = self)
+    self.window.connect("close-request", self.on_window_close)
     self.window.set_title('Natica')
     self.window.set_default_size(500,500)
     
@@ -178,7 +182,7 @@ class MyApp(Adw.Application):
     self.window.set_content(toolbar)
     self.window.present()
     
-    GLib.timeout_add(1000, self.on_tick)
+    self.timer_id = GLib.timeout_add(1000, self.on_tick)
     
   def create_home_page(self):
     page = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing = 10)
@@ -405,6 +409,7 @@ class MyApp(Adw.Application):
 
   #Calls for the above function and then lets the application based on Adw(Libadwaita) do its normal shutdown procedure 
   def do_shutdown(self):
+    GLib.source_remove(self.timer_id)
     self.prepare_for_close()
     Adw.Application.do_shutdown(self)
     

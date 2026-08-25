@@ -110,14 +110,15 @@ class MyApp(Adw.Application):
     self.storage = Storage()
     self.projects = self.storage.load()
     
-  def on_window_close(self, window):
-        self.quit()
+  def on_close_request(self, window):
+    self.quit()
+    return False
   
   def do_activate(self):
     self.window = Adw.ApplicationWindow(application = self)
-    self.window.connect("close-request", self.on_window_close)
     self.window.set_title('Natica')
-    self.window.set_default_size(500,500)
+    self.window.connect("close-request", self.on_close_request)
+    self.window.set_default_size(690,690)
     
     header=Adw.HeaderBar()
     title = Gtk.Label(label='Natica')

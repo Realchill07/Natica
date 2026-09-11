@@ -21,3 +21,5 @@ August 14 - Updated storage class so that it saves the data wether it be windows
 August 16 - Added deletion of projects and tasks and a confirmation window for deletion along with it
 
 August 21 - Decided logo of the app
+
+September 11 - Added CSS to the app

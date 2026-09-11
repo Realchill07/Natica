@@ -8,7 +8,7 @@ import platform
 gi.require_version('Adw','1')
 gi.require_version('Gtk','4.0')
 
-from gi.repository import Adw,Gtk, GLib
+from gi.repository import Adw,Gtk,GLib,Gdk
 
 Adw.init()
 
@@ -118,7 +118,7 @@ class MyApp(Adw.Application):
     self.window = Adw.ApplicationWindow(application = self)
     self.window.set_title('Natica')
     self.window.connect("close-request", self.on_close_request)
-    self.window.set_default_size(690,690)
+    self.window.maximize()
     
     header=Adw.HeaderBar()
     title = Gtk.Label(label='Natica')
@@ -156,6 +156,8 @@ class MyApp(Adw.Application):
     
     for title, page_name in self.pages:
       row = Gtk.ListBoxRow()
+            
+      row.add_css_class("sidebar-content")
       
       label = Gtk.Label(label=title)
       label.set_halign(Gtk.Align.START)
@@ -163,10 +165,13 @@ class MyApp(Adw.Application):
       row.set_child(label)
       
       sidebar.append(row)
+      
+      
     
     sidebar.select_row(sidebar.get_row_at_index(0))  
       
     sidebar.connect("row-selected",self.change_page)
+    
     
     # setting up the layout
     # this is dependent on order so if i put main_box.apped(self.stack) and then main_box.append(sidebar) then the sidebar will on right
@@ -179,6 +184,15 @@ class MyApp(Adw.Application):
     toolbar = Adw.ToolbarView()
     toolbar.add_top_bar(header)
     toolbar.set_content(main_box)
+    
+    provider = Gtk.CssProvider()
+    provider.load_from_path("main.css")
+
+    Gtk.StyleContext.add_provider_for_display(
+      Gdk.Display.get_default(),
+      provider,
+      Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+      )
     
     self.window.set_content(toolbar)
     self.window.present()
@@ -194,6 +208,7 @@ class MyApp(Adw.Application):
     page.set_margin_end(20)
                 
     label = Gtk.Label(label='Home')
+    label.add_css_class("page-header")
     page.append(label)
     return page
   
@@ -235,15 +250,19 @@ class MyApp(Adw.Application):
       page.set_margin_start(20)
       page.set_margin_end(20)
                   
-      label = Gtk.Label(label=name)
-      coming_soon = Gtk.Label(label = "Coming soon...")
+      label = Gtk.Label(label = name)
+      label.add_css_class("page-header")
       page.append(label)
-      page.append(coming_soon)
       return page
   
   def create_project_only_for_ui(self, stopwatch):
     project = project_row(stopwatch)
     
+    if stopwatch.parent == None:
+      project.add_css_class("parent-row")
+    else:
+      project.add_css_class("child-row")
+      
     project.THE_button.connect("clicked",self.on_start_clicked, stopwatch)
     
     project.delete_button.connect("clicked", self.on_delete_clicked, stopwatch, project)

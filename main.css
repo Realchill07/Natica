@@ -1,0 +1,36 @@
+.parent-row {
+    background-color: rgba(52, 94, 201, 0.15);
+    border: 1px solid rgba(49, 104, 159, 0.4);
+    border-radius: 10px;
+    padding: 10px;
+    font-size: 15px;
+}
+
+.child-row {
+    background-color: rgba(87, 195, 209, 0.08);
+    border-left: 3px solid rgba(33, 87, 97, 0.5);
+    border-radius: 6px;
+    padding: 5px;
+}
+
+window {
+    background-color: rgb(29, 94, 63);
+}
+
+.navigation-sidebar {
+    font-size: 17px;
+}
+
+.sidebar-content {
+    font-size: 17px;
+    margin-top: 7px;
+    /* background-color: rgb(41, 124, 96); */
+}
+
+.sidebar-content:selected {
+    background-color: rgb(41, 124, 96);
+}
+
+.page-header {
+    font-size: 19px;
+}

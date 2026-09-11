@@ -22,4 +22,4 @@ August 16 - Added deletion of projects and tasks and a confirmation window for d
 
 August 21 - Decided logo of the app
 
-September 11 - Added CSS to the app
+September 11 - Added CSS to the app 

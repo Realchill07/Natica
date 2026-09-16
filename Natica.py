@@ -225,6 +225,7 @@ class MyApp(Adw.Application):
     
     button = Gtk.Button(label='+ New Project')
     button.connect("clicked", self.on_click_new_project)
+    self.pointer_on_hover(button)
     page.append(button)
     
     self.projects_list = Gtk.Box(orientation = Gtk.Orientation.VERTICAL, spacing = 8)
@@ -439,6 +440,7 @@ class MyApp(Adw.Application):
     
     dialog.add_response("cancel", "Cancel")
     dialog.add_response("delete", "Delete")
+    self.pointer_on_hover(dialog)
     
     dialog.set_response_appearance("delete", Adw.ResponseAppearance.DESTRUCTIVE)
     
@@ -459,6 +461,22 @@ class MyApp(Adw.Application):
     widget.unparent()
     
     self.storage.save(self.projects)
+    
+  def pointer_on_hover(self, widget):
+    controller = Gtk.EventControllerMotion.new()
+        
+    def on_enter(*args):
+      cursor = Gdk.Cursor.new_from_name("pointer")
+      widget.set_cursor(cursor)
+              
+    def on_exit(*args):
+      widget.set_cursor(None)
+              
+    controller.connect("enter",on_enter)
+    controller.connect("leave", on_exit)
+    widget.add_controller(controller)
+    
+   
 
 #If we consider the class Stopwatch to be the framework, this class is like how that framework is showed/displayed in the app
 class project_row(Gtk.Box):
@@ -494,19 +512,23 @@ class project_row(Gtk.Box):
     #Edit Button
     self.editing = False
     self.edit_button = Gtk.Button(label = "Edit")
+    self.pointer_on_hover(self.edit_button)
     self.row.append(self.edit_button)
     
     #Button to resume/start/pause the stopwatch
     self.THE_button = Gtk.Button(label = 'Start')
     self.row.append(self.THE_button)
+    self.pointer_on_hover(self.THE_button)
     
     #BUtton to delete
     self.delete_button = Gtk.Button(label = 'Delete')
     self.row.append(self.delete_button)
+    self.pointer_on_hover(self.delete_button)
       
     #Button to add a child 
     self.child_button = Gtk.Button(label = '+')
     self.row.append(self.child_button)
+    self.pointer_on_hover(self.child_button)
     
     #row for each children... duh
     self.children_box = Gtk.Box(orientation= Gtk.Orientation.VERTICAL, spacing = 7)
@@ -514,6 +536,23 @@ class project_row(Gtk.Box):
     
     self.append(self.row)
     self.append(self.children_box)
+    
+  def pointer_on_hover(self, widget):
+    controller = Gtk.EventControllerMotion.new()
+        
+    def on_enter(*args):
+      cursor = Gdk.Cursor.new_from_name("pointer")
+      widget.set_cursor(cursor)
+              
+    def on_exit(*args):
+      widget.set_cursor(None)
+              
+    controller.connect("enter",on_enter)
+    controller.connect("leave", on_exit)
+    widget.add_controller(controller)
+    
+     
+  
 
 #Class that handles storing the data and some of the functions relevant to it since 2 of the functions related to storage lives in the class Stopwatch
 class Storage:

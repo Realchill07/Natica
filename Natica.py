@@ -186,13 +186,19 @@ class MyApp(Adw.Application):
     toolbar.set_content(main_box)
     
     provider = Gtk.CssProvider()
-    provider.load_from_path("main.css")
+
+    css_path = os.path.join(
+      os.path.dirname(os.path.abspath(__file__)),
+      "main.css"
+    )
+
+    provider.load_from_path(css_path)
 
     Gtk.StyleContext.add_provider_for_display(
-      Gdk.Display.get_default(),
-      provider,
-      Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
-      )
+    Gdk.Display.get_default(),
+    provider,
+    Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+    )
     
     self.window.set_content(toolbar)
     self.window.present()

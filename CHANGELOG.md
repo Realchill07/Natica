@@ -23,3 +23,9 @@ August 16 - Added deletion of projects and tasks and a confirmation window for d
 August 21 - Decided logo of the app
 
 September 11 - Added CSS to the app 
+
+September 17 - Tested popover in a seperate file
+
+September 20 - Tested right click to call popover
+
+Septwmber 24 - Implemented right click to call popover menu rn containing edit and delete button

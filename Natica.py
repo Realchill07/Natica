@@ -8,7 +8,7 @@ import platform
 gi.require_version('Adw','1')
 gi.require_version('Gtk','4.0')
 
-from gi.repository import Adw,Gtk,GLib,Gdk
+from gi.repository import Adw,Gtk,GLib,Gdk,Gio
 
 Adw.init()
 
@@ -264,6 +264,7 @@ class MyApp(Adw.Application):
   
   def create_project_only_for_ui(self, stopwatch):
     project = project_row(stopwatch)
+    project.app = self
     
     if stopwatch.parent == None:
       project.add_css_class("parent-row")
@@ -540,6 +541,12 @@ class project_row(Gtk.Box):
     self.children_box = Gtk.Box(orientation= Gtk.Orientation.VERTICAL, spacing = 7)
     self.children_box.set_margin_start(25)
     
+    gesture = Gtk.GestureClick()
+    gesture.set_button(3)
+    gesture.set_propagation_phase(Gtk.PropagationPhase.CAPTURE)
+    gesture.connect("pressed",self.on_right_click, stopwatch)
+    self.row.add_controller(gesture)
+    
     self.append(self.row)
     self.append(self.children_box)
     
@@ -557,9 +564,63 @@ class project_row(Gtk.Box):
     controller.connect("leave", on_exit)
     widget.add_controller(controller)
     
-     
-  
+  def on_right_click(self, gesture, n_press, x, y, stopwatch):
 
+    self.app.selected_task = stopwatch
+    self.app.selected_widget = self
+
+    popup = Gtk.Popover()
+    popup.set_parent(self.row)
+
+    # Creates menu layout
+    menu_box = Gtk.Box(
+        orientation=Gtk.Orientation.VERTICAL,
+        spacing=0
+    )
+
+    # Delete button
+    delete_button = Gtk.Button(label="Delete")
+    delete_button.set_has_frame(False)
+    
+    
+    # Directly calls the delete function
+    delete_button.connect(
+        "clicked",
+        lambda button: self.app.on_delete_clicked(
+            None, stopwatch, self
+        )
+    )
+
+    # Edit button
+    edit_button = Gtk.Button(label="Edit")
+    edit_button.set_has_frame(False)
+
+    # Directly calls the edit function
+    edit_button.connect(
+        "clicked",
+        lambda button: self.app.edit_project_name(
+            None, stopwatch, self
+        )
+    )
+
+    menu_box.append(edit_button)
+    menu_box.append(delete_button)
+
+    popup.set_child(menu_box)
+
+    #visual of the popup
+    rect = Gdk.Rectangle()
+    rect.x = int(x)
+    rect.y = int(y)
+    rect.width = 1
+    rect.height = 1
+
+    popup.set_pointing_to(rect)
+    popup.connect("closed", lambda p: p.unparent())
+
+    popup.popup()
+    
+    
 #Class that handles storing the data and some of the functions relevant to it since 2 of the functions related to storage lives in the class Stopwatch
 class Storage:
   def __init__(self):

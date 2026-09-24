@@ -566,9 +566,6 @@ class project_row(Gtk.Box):
     
   def on_right_click(self, gesture, n_press, x, y, stopwatch):
 
-    self.app.selected_task = stopwatch
-    self.app.selected_widget = self
-
     popup = Gtk.Popover()
     popup.set_parent(self.row)
 
@@ -577,31 +574,28 @@ class project_row(Gtk.Box):
         orientation=Gtk.Orientation.VERTICAL,
         spacing=0
     )
+    
+    def run_then_close(action):
+      def handler(_button):
+        popup.popdown()
+        action(None, stopwatch, self)
+      return handler
 
     # Delete button
     delete_button = Gtk.Button(label="Delete")
     delete_button.set_has_frame(False)
     
+    #calls delete function through run then close, this will close the popup 
+    #before calling the function 
+    delete_button.connect("clicked",run_then_close(self.app.on_delete_clicked))
     
-    # Directly calls the delete function
-    delete_button.connect(
-        "clicked",
-        lambda button: self.app.on_delete_clicked(
-            None, stopwatch, self
-        )
-    )
 
     # Edit button
     edit_button = Gtk.Button(label="Edit")
     edit_button.set_has_frame(False)
 
-    # Directly calls the edit function
-    edit_button.connect(
-        "clicked",
-        lambda button: self.app.edit_project_name(
-            None, stopwatch, self
-        )
-    )
+    #same for the edit button
+    edit_button.connect("clicked", run_then_close(self.app.edit_project_name))
 
     menu_box.append(edit_button)
     menu_box.append(delete_button)
@@ -610,10 +604,7 @@ class project_row(Gtk.Box):
 
     #visual of the popup
     rect = Gdk.Rectangle()
-    rect.x = int(x)
-    rect.y = int(y)
-    rect.width = 1
-    rect.height = 1
+    rect.x, rect.y, rect.height, rect.width = int(x), int(y), 1, 1
 
     popup.set_pointing_to(rect)
     popup.connect("closed", lambda p: p.unparent())

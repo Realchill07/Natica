@@ -32,5 +32,5 @@ Septweber 24 - Implemented right click to call popover menu rn containing edit a
 
 September 24 - Bug Fix : where the options popup doesn't disappear on its own when clicked on an option and required a seperate click
 
-September 27 - Adding the add subtask button in the right click menu
+September 27 - Added the add subtask button in the right click menu
 

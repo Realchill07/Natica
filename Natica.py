@@ -335,7 +335,7 @@ class MyApp(Adw.Application):
     self.update_labels()
     return True
   
-  #Creates an object of the class stopwatch but his time as a child for an exisiting stopwatch
+  #Creates an object of the class stopwatch but this time as a child for an exisiting stopwatch
   def on_add_child(self, button, parent, parent_widget):
     child = Stopwatch('New Task', parent)
   
@@ -596,9 +596,18 @@ class project_row(Gtk.Box):
 
     #same for the edit button
     edit_button.connect("clicked", run_then_close(self.app.edit_project_name))
+    
+    #Sub-task button
+    add_child_button = Gtk.Button(label='Add Subtask')
+    add_child_button.set_has_frame(False)
+    
+    #calls its main function through run then calls which also call popdown before 
+    #calling the intended function
+    add_child_button.connect('clicked',run_then_close(self.app.on_add_child))
 
     menu_box.append(edit_button)
     menu_box.append(delete_button)
+    menu_box.append(add_child_button)
 
     popup.set_child(menu_box)
 

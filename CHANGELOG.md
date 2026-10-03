@@ -35,3 +35,5 @@ September 24 - Bug Fix : where the options popup doesn't disappear on its own wh
 September 27 - Added the add subtask button in the right click menu
 
 October 3 - Added the button to expand or collapse task's children
+
+October 3 - Added hover color change on both parent and child class

@@ -34,3 +34,9 @@ window {
 .page-header {
     font-size: 19px;
 }
+.child-row:hover {
+    background-color: rgba(136, 255, 0, 0.1);
+}
+.parent-row:hover {
+    background-color: rgba(136, 255, 0, 0.1);
+}

@@ -275,13 +275,13 @@ class MyApp(Adw.Application):
       
     project.THE_button.connect("clicked",self.on_start_clicked, stopwatch)
     
-    project.delete_button.connect("clicked", self.on_delete_clicked, stopwatch, project)
+    # project.delete_button.connect("clicked", self.on_delete_clicked, stopwatch, project)
     
-    project.child_button.connect("clicked", self.on_add_child, stopwatch, project)
+    # project.child_button.connect("clicked", self.on_add_child, stopwatch, project)
     
     project.name_entry.connect("activate", self.edit_project_name, stopwatch, project)
     
-    project.edit_button.connect("clicked", self.edit_project_name, stopwatch, project)
+    # project.edit_button.connect("clicked", self.edit_project_name, stopwatch, project)
     
     project.expand_collapse_button.connect("clicked", self.expand_collapse, project)
     
@@ -567,9 +567,9 @@ class project_row(Gtk.Box):
     
     #Edit Button
     self.editing = False
-    self.edit_button = Gtk.Button(label = "Edit")
-    self.pointer_on_hover(self.edit_button)
-    self.row.append(self.edit_button)
+    # self.edit_button = Gtk.Button(label = "Edit")
+    # self.pointer_on_hover(self.edit_button)
+    # self.row.append(self.edit_button)
     
     #Button to resume/start/pause the stopwatch
     self.THE_button = Gtk.Button(label = 'Start')
@@ -577,14 +577,14 @@ class project_row(Gtk.Box):
     self.pointer_on_hover(self.THE_button)
     
     #BUtton to delete
-    self.delete_button = Gtk.Button(label = 'Delete')
-    self.row.append(self.delete_button)
-    self.pointer_on_hover(self.delete_button)
+    # self.delete_button = Gtk.Button(label = 'Delete')
+    # self.row.append(self.delete_button)
+    # self.pointer_on_hover(self.delete_button)
       
     #Button to add a child 
-    self.child_button = Gtk.Button(label = '+')
-    self.row.append(self.child_button)
-    self.pointer_on_hover(self.child_button)
+    # self.child_button = Gtk.Button(label = '+')
+    # self.row.append(self.child_button)
+    # self.pointer_on_hover(self.child_button)
   
     #row for each children... duh
     self.children_box = Gtk.Box(orientation= Gtk.Orientation.VERTICAL, spacing = 7)

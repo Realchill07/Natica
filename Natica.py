@@ -107,6 +107,7 @@ class MyApp(Adw.Application):
     self.projects = []
     self.project_label = {}
     self.project_buttons = {}
+    self.project_widgets = {}
     self.storage = Storage()
     self.projects = self.storage.load()
     
@@ -264,6 +265,7 @@ class MyApp(Adw.Application):
   
   def create_project_only_for_ui(self, stopwatch):
     project = project_row(stopwatch)
+    self.project_widgets[stopwatch.id] = project
     project.app = self
     
     if stopwatch.parent == None:
@@ -345,7 +347,7 @@ class MyApp(Adw.Application):
     
     parent_widget.children_box.set_visible(True) 
     
-    self.exapnd_on_add_child(parent_widget)
+    self.expand_on_add_child(parent_widget)
     
     parent.children.append(child)
     
@@ -468,10 +470,17 @@ class MyApp(Adw.Application):
   def delete_on_response(self, dialog, response, stopwatch, widget):
     if response != "delete":
       return
+    
     if stopwatch.parent is None:
       self.projects.remove(stopwatch)
     else:
+      parent = stopwatch.parent
       stopwatch.parent.children.remove(stopwatch)
+      
+      if not parent.children:
+        parent_widget = self.project_widgets[parent.id]
+        self.collapse_on_delete_child(parent_widget)
+        
       
     widget.unparent()
     
@@ -502,12 +511,18 @@ class MyApp(Adw.Application):
       project.children_box.set_visible(False)
       project.collapsed = True
       project.expand_collapse_button.set_label('▶')
-      
-  def exapnd_on_add_child(self, project):
+    
+  #expands the children_box when a new child is added to an otherwise childless parent  
+  def expand_on_add_child(self, project):
     project.children_box.set_visible(True)
     project.collapsed = False
     project.expand_collapse_button.set_label('▼')
-
+  
+  def collapse_on_delete_child(self, project):
+    project.children_box.set_visible(False)
+    project.collapsed = True
+    project.expand_collapse_button.set_visible(False)
+    
 #If we consider the class Stopwatch to be the framework, this class is like how that framework is showed/displayed in the app
 class project_row(Gtk.Box):
   def __init__(self, stopwatch):

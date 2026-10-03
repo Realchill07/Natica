@@ -281,6 +281,8 @@ class MyApp(Adw.Application):
     
     project.edit_button.connect("clicked", self.edit_project_name, stopwatch, project)
     
+    project.expand_collapse_button.connect("clicked", self.expand_collapse, project)
+    
     self.project_buttons[stopwatch.id] = project.THE_button
     self.project_label[stopwatch.id] = project.time_label
     
@@ -338,7 +340,13 @@ class MyApp(Adw.Application):
   #Creates an object of the class stopwatch but this time as a child for an exisiting stopwatch
   def on_add_child(self, button, parent, parent_widget):
     child = Stopwatch('New Task', parent)
-  
+    
+    parent_widget.expand_collapse_button.set_visible(True)
+    
+    parent_widget.children_box.set_visible(True) 
+    
+    self.exapnd_on_add_child(parent_widget)
+    
     parent.children.append(child)
     
     child_widget = self.create_project_only_for_ui(child)
@@ -483,7 +491,22 @@ class MyApp(Adw.Application):
     controller.connect("leave", on_exit)
     widget.add_controller(controller)
     
-   
+  #Function to update and set children visible or not
+  def expand_collapse(self,button,project):
+    if project.collapsed is True:
+      project.children_box.set_visible(True)
+      project.collapsed = False
+      project.expand_collapse_button.set_label('▼')
+
+    elif project.collapsed is not True:
+      project.children_box.set_visible(False)
+      project.collapsed = True
+      project.expand_collapse_button.set_label('▶')
+      
+  def exapnd_on_add_child(self, project):
+    project.children_box.set_visible(True)
+    project.collapsed = False
+    project.expand_collapse_button.set_label('▼')
 
 #If we consider the class Stopwatch to be the framework, this class is like how that framework is showed/displayed in the app
 class project_row(Gtk.Box):
@@ -494,10 +517,21 @@ class project_row(Gtk.Box):
     
     #row for parents
     self.row = Gtk.Box(orientation = Gtk.Orientation.HORIZONTAL, spacing = 5)
+
+    #Collapse/Expand button for each task and sub-task
+    self.expand_collapse_button = Gtk.Button(label = '▶')
+    self.row.append(self.expand_collapse_button)
+    self.collapsed = True 
     
+    if(stopwatch.children):
+      self.expand_collapse_button.set_visible(True)
+    else:
+      self.expand_collapse_button.set_visible(False)
+   
+      
     self.name_stack = Gtk.Stack()
     self.row.append(self.name_stack)
-    
+      
     #entry for renaming the stopwatch
     self.name_entry = Gtk.Entry()
     self.name_entry.set_text(stopwatch.name)
@@ -536,7 +570,7 @@ class project_row(Gtk.Box):
     self.child_button = Gtk.Button(label = '+')
     self.row.append(self.child_button)
     self.pointer_on_hover(self.child_button)
-    
+  
     #row for each children... duh
     self.children_box = Gtk.Box(orientation= Gtk.Orientation.VERTICAL, spacing = 7)
     self.children_box.set_margin_start(25)
@@ -546,6 +580,8 @@ class project_row(Gtk.Box):
     gesture.set_propagation_phase(Gtk.PropagationPhase.CAPTURE)
     gesture.connect("pressed",self.on_right_click, stopwatch)
     self.row.add_controller(gesture)
+
+    self.children_box.set_visible(False)
     
     self.append(self.row)
     self.append(self.children_box)

@@ -412,7 +412,6 @@ class MyApp(Adw.Application):
       project.name_entry.select_region(0,-1)
       project.name_stack.set_visible_child_name("entry")
       
-      project.edit_button.set_label('Save')
       project.name_entry.grab_focus()
       
     else:
@@ -423,7 +422,6 @@ class MyApp(Adw.Application):
         project.name_label.set_label(stopwatch.name)
         
       project.name_stack.set_visible_child_name("label")
-      project.edit_button.set_label("Edit")
       project.editing = False   
     
     
@@ -635,13 +633,14 @@ class project_row(Gtk.Box):
      
   #Same functionality as expand_collapse but for gesture
   def on_left_click(self, gesture, n_press, x, y):
+    if self.editing: return
     if n_press == 1:
       self.single_click_timer = GLib.timeout_add(300, self.do_single_click)
     elif n_press == 2:
       if self.single_click_timer:
         GLib.source_remove(self.single_click_timer)
         self.single_click_timer = None
-      self.testing()
+      self.rename_gesture()
 
 
   def do_single_click(self):
@@ -650,6 +649,7 @@ class project_row(Gtk.Box):
     return False
 
   def expand_collapse_gesture(self):
+    if self.editing: return
     if self.collapsed is True:
       self.children_box.set_visible(True)
       self.collapsed = False
@@ -660,8 +660,8 @@ class project_row(Gtk.Box):
       self.collapsed = True
       self.expand_collapse_button.set_label('+')    
       
-  def testing(self):
-    print("works")
+  def rename_gesture(self):
+    self.app.edit_project_name(None, self.stopwatch, self)
             
   def on_right_click(self, gesture, n_press, x, y, stopwatch):
 

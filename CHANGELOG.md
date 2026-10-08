@@ -39,3 +39,5 @@ October 3 - Added the button to expand or collapse task's children
 October 3 - Added hover color change on both parent and child class
 
 October 3 - Removed rename, delete, and add subtask button from the project row and fully focused on right click menu
+
+October 8 - Added single left click to expand/collapse a row 

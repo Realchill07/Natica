@@ -285,6 +285,7 @@ class MyApp(Adw.Application):
     
     project.expand_collapse_button.connect("clicked", self.expand_collapse, project)
     
+    
     self.project_buttons[stopwatch.id] = project.THE_button
     self.project_label[stopwatch.id] = project.time_label
     
@@ -500,29 +501,31 @@ class MyApp(Adw.Application):
     controller.connect("leave", on_exit)
     widget.add_controller(controller)
     
-  #Function to update and set children visible or not
+  #Function to update and set children visible or not 
   def expand_collapse(self,button,project):
     if project.collapsed is True:
       project.children_box.set_visible(True)
       project.collapsed = False
-      project.expand_collapse_button.set_label('▼')
+      project.expand_collapse_button.set_label('-')
 
     elif project.collapsed is not True:
       project.children_box.set_visible(False)
       project.collapsed = True
-      project.expand_collapse_button.set_label('▶')
+      project.expand_collapse_button.set_label('+') 
     
   #expands the children_box when a new child is added to an otherwise childless parent  
   def expand_on_add_child(self, project):
     project.children_box.set_visible(True)
     project.collapsed = False
-    project.expand_collapse_button.set_label('▼')
+    project.expand_collapse_button.set_label('-')
   
+  #collapsed the children_box when the last child is killed
   def collapse_on_delete_child(self, project):
     project.children_box.set_visible(False)
     project.collapsed = True
     project.expand_collapse_button.set_visible(False)
-    
+ 
+      
 #If we consider the class Stopwatch to be the framework, this class is like how that framework is showed/displayed in the app
 class project_row(Gtk.Box):
   def __init__(self, stopwatch):
@@ -530,11 +533,16 @@ class project_row(Gtk.Box):
     
     self.stopwatch = stopwatch
     
+    self.single_click_timer = None
+    
     #row for parents
     self.row = Gtk.Box(orientation = Gtk.Orientation.HORIZONTAL, spacing = 5)
+    
+    #row for all the non interactive components of a row
+    self.content_area = Gtk.Box(orientation = Gtk.Orientation.HORIZONTAL, spacing = 0)
 
     #Collapse/Expand button for each task and sub-task
-    self.expand_collapse_button = Gtk.Button(label = '▶')
+    self.expand_collapse_button = Gtk.Button(label = '+')
     self.row.append(self.expand_collapse_button)
     self.collapsed = True 
     
@@ -545,7 +553,7 @@ class project_row(Gtk.Box):
    
       
     self.name_stack = Gtk.Stack()
-    self.row.append(self.name_stack)
+    self.content_area.append(self.name_stack)
       
     #entry for renaming the stopwatch
     self.name_entry = Gtk.Entry()
@@ -563,7 +571,10 @@ class project_row(Gtk.Box):
     
     #Timer label
     self.time_label = Gtk.Label(label = '00:00:00')
-    self.row.append(self.time_label)
+    self.content_area.append(self.time_label)
+    
+    
+    self.row.append(self.content_area)
     
     #Edit Button
     self.editing = False
@@ -590,12 +601,18 @@ class project_row(Gtk.Box):
     self.children_box = Gtk.Box(orientation= Gtk.Orientation.VERTICAL, spacing = 7)
     self.children_box.set_margin_start(25)
     
-    gesture = Gtk.GestureClick()
-    gesture.set_button(3)
-    gesture.set_propagation_phase(Gtk.PropagationPhase.CAPTURE)
-    gesture.connect("pressed",self.on_right_click, stopwatch)
-    self.row.add_controller(gesture)
+    gesture_menu = Gtk.GestureClick()
+    gesture_menu.set_button(3)
+    gesture_menu.set_propagation_phase(Gtk.PropagationPhase.CAPTURE)
+    gesture_menu.connect("pressed",self.on_right_click, stopwatch)
+    self.row.add_controller(gesture_menu)
 
+    gesture_expand = Gtk.GestureClick()
+    gesture_expand.set_button(1)
+    gesture_expand. set_propagation_phase(Gtk.PropagationPhase.CAPTURE)
+    gesture_expand.connect("pressed",self.on_left_click)
+    self.content_area.add_controller(gesture_expand)
+    
     self.children_box.set_visible(False)
     
     self.append(self.row)
@@ -614,7 +631,38 @@ class project_row(Gtk.Box):
     controller.connect("enter",on_enter)
     controller.connect("leave", on_exit)
     widget.add_controller(controller)
-    
+  
+     
+  #Same functionality as expand_collapse but for gesture
+  def on_left_click(self, gesture, n_press, x, y):
+    if n_press == 1:
+      self.single_click_timer = GLib.timeout_add(300, self.do_single_click)
+    elif n_press == 2:
+      if self.single_click_timer:
+        GLib.source_remove(self.single_click_timer)
+        self.single_click_timer = None
+      self.testing()
+
+
+  def do_single_click(self):
+    self.expand_collapse_gesture()
+    self.single_click_timer = None
+    return False
+
+  def expand_collapse_gesture(self):
+    if self.collapsed is True:
+      self.children_box.set_visible(True)
+      self.collapsed = False
+      self.expand_collapse_button.set_label('-')
+        
+    elif self.collapsed is not True:
+      self.children_box.set_visible(False)
+      self.collapsed = True
+      self.expand_collapse_button.set_label('+')    
+      
+  def testing(self):
+    print("works")
+            
   def on_right_click(self, gesture, n_press, x, y, stopwatch):
 
     popup = Gtk.Popover()
@@ -631,7 +679,7 @@ class project_row(Gtk.Box):
         popup.popdown()
         action(None, stopwatch, self)
       return handler
-
+    
     # Delete button
     delete_button = Gtk.Button(label="Delete")
     delete_button.set_has_frame(False)

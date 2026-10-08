@@ -43,3 +43,5 @@ October 3 - Removed rename, delete, and add subtask button from the project row 
 October 8 - Added single left click to expand/collapse a row 
 
 October 8 - Added double left click to rename a row
+
+October 8 - If Escape key pressed while editing a name then the former name of the stopwatch is restored

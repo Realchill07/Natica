@@ -407,6 +407,9 @@ class MyApp(Adw.Application):
   def edit_project_name(self, button, stopwatch, project):
     if not project.editing:
       project.editing = True
+          
+      #Stores the original name incase user cancels editing the name
+      project.original_name = stopwatch.name
       
       project.name_entry.set_text(stopwatch.name)
       project.name_entry.select_region(0,-1)
@@ -530,7 +533,6 @@ class project_row(Gtk.Box):
     super().__init__(orientation=Gtk.Orientation.VERTICAL, spacing = 10)
     
     self.stopwatch = stopwatch
-    
     self.single_click_timer = None
     
     #row for parents
@@ -556,6 +558,12 @@ class project_row(Gtk.Box):
     #entry for renaming the stopwatch
     self.name_entry = Gtk.Entry()
     self.name_entry.set_text(stopwatch.name)
+    
+    #Stores the original name incase user cancels editing the name
+    
+    key_controller = Gtk.EventControllerKey()
+    key_controller.connect("key-pressed",self.on_edit_key)
+    self.name_entry.add_controller(key_controller)
     
     #Name label for the stopwatch
     self.name_label = Gtk.Label(label = stopwatch.name)
@@ -631,7 +639,7 @@ class project_row(Gtk.Box):
     widget.add_controller(controller)
   
      
-  #Same functionality as expand_collapse but for gesture
+  #Decided wether to expand/collapse a row's children or rename depending on number of left clicks
   def on_left_click(self, gesture, n_press, x, y):
     if self.editing: return
     if n_press == 1:
@@ -642,12 +650,13 @@ class project_row(Gtk.Box):
         self.single_click_timer = None
       self.rename_gesture()
 
-
+  #helper function
   def do_single_click(self):
     self.expand_collapse_gesture()
     self.single_click_timer = None
     return False
 
+  #Function to expand/collapse a row's children box when activated through gesture
   def expand_collapse_gesture(self):
     if self.editing: return
     if self.collapsed is True:
@@ -659,10 +668,22 @@ class project_row(Gtk.Box):
       self.children_box.set_visible(False)
       self.collapsed = True
       self.expand_collapse_button.set_label('+')    
-      
-  def rename_gesture(self):
+  
+  #calls function to edit name 
+  def rename_gesture(self):      
     self.app.edit_project_name(None, self.stopwatch, self)
-            
+  
+  def on_edit_key(self, controller, keyval, keycode, state):
+    if keyval == Gdk.KEY_Escape:
+      self.name_entry.set_text(self.original_name)
+      self.name_stack.set_visible_child_name("label")
+      self.editing = False
+      self.name_entry.set_position(0)
+      
+      return True
+    
+    return False
+        
   def on_right_click(self, gesture, n_press, x, y, stopwatch):
 
     popup = Gtk.Popover()

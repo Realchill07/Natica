@@ -40,3 +40,6 @@ window {
 .parent-row:hover {
     background-color: rgba(136, 255, 0, 0.1);
 }
+.active-row {
+    border: dotted black 2px;
+}

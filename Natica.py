@@ -376,32 +376,39 @@ class MyApp(Adw.Application):
         if sibling is not stopwatch and sibling.running:
           sibling.pause()
           self.update_button_label(sibling)
+          self.project_widgets[sibling.id].update_active_state()
     
     while parent is not None:
       if not parent.running:
         parent.start()
         
+      self.project_widgets[parent.id].update_active_state()
       self.update_button_label(parent)
       parent = parent.parent
     
     stopwatch.start()
+    self.project_widgets[stopwatch.id].update_active_state()
     self.update_button_label(stopwatch) 
   
   #The class which handles when a subtask or a task is paused
   def pause_stopwatch(self, stopwatch):
     parent = stopwatch.parent
+
     stopwatch.pause()
     self.update_button_label(stopwatch)
-    
+    self.project_widgets[stopwatch.id].update_active_state()
+
     for child in stopwatch.children:
       if child.running:
         self.pause_stopwatch(child)
-    
+
     if parent is not None:
       any_child_running = any(child.running for child in parent.children)
+
       if not any_child_running:
         parent.pause()
         self.update_button_label(parent)
+        self.project_widgets[parent.id].update_active_state()
   
   #Function to edit a task or subtask's name
   def edit_project_name(self, button, stopwatch, project):
@@ -683,6 +690,12 @@ class project_row(Gtk.Box):
       return True
     
     return False
+  
+  def update_active_state(self):
+    if self.stopwatch.running:
+      self.add_css_class('active-row')
+    else:
+      self.remove_css_class('active-row')
         
   def on_right_click(self, gesture, n_press, x, y, stopwatch):
 

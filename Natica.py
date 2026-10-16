@@ -205,6 +205,8 @@ class MyApp(Adw.Application):
     self.window.present()
     
     self.timer_id = GLib.timeout_add(1000, self.on_tick)
+    self.auto_save_timer = GLib.timeout_add_seconds(60, self.auto_save)
+
     
   def create_home_page(self):
     page = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing = 10)
@@ -457,6 +459,7 @@ class MyApp(Adw.Application):
   #Calls for the above function and then lets the application based on Adw(Libadwaita) do its normal shutdown procedure 
   def do_shutdown(self):
     GLib.source_remove(self.timer_id)
+    GLib.source_remove(self.auto_save_timer)
     self.prepare_for_close()
     Adw.Application.do_shutdown(self)
     
@@ -532,6 +535,11 @@ class MyApp(Adw.Application):
     project.children_box.set_visible(False)
     project.collapsed = True
     project.expand_collapse_button.set_visible(False)
+    
+  #It is called every minute to save the state of timers
+  def auto_save(self):
+    self.storage.save(self.projects)
+    return True
  
       
 #If we consider the class Stopwatch to be the framework, this class is like how that framework is showed/displayed in the app

@@ -3,3 +3,5 @@ hecnce there will be an option to show selected projects on home page, lets set 
 these will projects user will change depending on which projects are they working on rn.
 
 kind of like to-do list thingy
+
+filter option for the projects page

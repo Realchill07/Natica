@@ -125,6 +125,7 @@ class MyApp(Adw.Application):
     
     header=Adw.HeaderBar()
     title = Gtk.Label(label='Natica')
+    title.add_css_class('window-title')
     header.set_title_widget(title)
     
     main_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=0)
@@ -281,6 +282,7 @@ class MyApp(Adw.Application):
     page.append(label)
     
     button = Gtk.Button(label='+ New Project')
+    button.add_css_class('new_project')
     button.connect("clicked", self.on_click_new_project)
     self.pointer_on_hover(button)
     page.append(button)

@@ -3,7 +3,7 @@
     border: 1px solid rgba(49, 104, 159, 0.4);
     border-radius: 10px;
     padding: 10px;
-    font-size: 17px;
+    font-size: 16px;
 }
 
 .child-row {
@@ -52,4 +52,13 @@ window {
 }
 spinbutton{
     font-size: 20px;
+}
+.new_project {
+    font-size: 18px;
+}
+.window-title {
+    font-size: 19px;
+    font-weight: bold;
+    font-style: italic;
+    color: #ffffff;
 }

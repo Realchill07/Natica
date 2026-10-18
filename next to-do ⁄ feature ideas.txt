@@ -2,4 +2,4 @@ when number of total projects will invetiably reach a point where it is too clut
 hecnce there will be an option to show selected projects on home page, lets set the limit to 3 - 5(flexible on this)
 these will projects user will change depending on which projects are they working on rn.
 
-higehest fucking priority - autosave not just on some changes, like on a timer every minute or so
+kind of like to-do list thingy

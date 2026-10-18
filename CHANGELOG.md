@@ -47,3 +47,5 @@ October 8 - Added double left click to rename a row
 October 8 - If Escape key pressed while editing a name then the former name of the stopwatch is restored
 
 October 16 - Auto save on every minute
+
+October 19 - Added seperate function for settings page creation

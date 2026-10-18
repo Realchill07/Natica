@@ -110,6 +110,8 @@ class MyApp(Adw.Application):
     self.project_widgets = {}
     self.storage = Storage()
     self.projects = self.storage.load()
+    self.auto_save_timer_id = None
+    self.auto_save_interval = 5
     
   def on_close_request(self, window):
     self.quit()
@@ -143,7 +145,7 @@ class MyApp(Adw.Application):
     self.stack.add_named(self.create_projects_page(),'projects')
     self.stack.add_named(self.create_page("Reports"), "reports")
     self.stack.add_named(self.create_page("Statistics"), "stats")
-    self.stack.add_named(self.create_page("Settings"), "settings")
+    self.stack.add_named(self.create_settings_page(), "settings")
     
     
     self.pages = [
@@ -205,7 +207,6 @@ class MyApp(Adw.Application):
     self.window.present()
     
     self.timer_id = GLib.timeout_add(1000, self.on_tick)
-    self.auto_save_timer = GLib.timeout_add_seconds(60, self.auto_save)
 
     
   def create_home_page(self):
@@ -217,8 +218,52 @@ class MyApp(Adw.Application):
     page.set_margin_end(20)
                 
     label = Gtk.Label(label='Home')
-    label.add_css_class("page-header")
+    label.add_css_class('page_titles')
     page.append(label)
+    return page
+  
+  def create_settings_page(self):
+    page = Gtk.Box(orientation = Gtk.Orientation.VERTICAL, spacing = 10)
+    
+    page.set_margin_top(20)
+    page.set_margin_bottom(20)
+    page.set_margin_start(20)
+    page.set_margin_end(20)
+
+    label = Gtk.Label(label = 'Settings')
+    label.add_css_class('page_titles') 
+    page.append(label)  
+    
+    row = Gtk.Box(orientation = Gtk.Orientation.HORIZONTAL, spacing = 12)
+    
+    print(self.auto_save_interval)
+    
+    auto_save_label = Gtk.Label(label = "Auto save interval (in minutes)")
+    auto_save_label.set_hexpand(True)
+    auto_save_label.set_halign(Gtk.Align.START)
+    row.append(auto_save_label)
+    
+    adj = Gtk.Adjustment(value = self.auto_save_interval, lower = 1, upper = 60, step_increment = 1, page_increment = 5, page_size = 0)
+    
+    self.auto_save_timer_value = Gtk.SpinButton(adjustment = adj, climb_rate = 1, digits = 0)
+    self.auto_save_timer_value.connect("value-changed", self.auto_save_updated)
+    self.auto_save_timer_value.set_halign(Gtk.Align.END)
+    row.append(self.auto_save_timer_value)
+
+    focus_controller = Gtk.EventControllerFocus()
+    focus_controller.connect("leave", self.auto_save_committed)
+    self.auto_save_timer_value.add_controller(focus_controller)   
+    
+    self.auto_save_status = Gtk.Label(label = "Changes are saved automatically")
+    self.auto_save_status.set_xalign(0)
+    
+    page.append(row)
+    page.append(self.auto_save_status)
+    
+    
+    self.auto_save_timer_value.connect("activate",self.auto_save_committed)
+    self.auto_save_updated(self.auto_save_timer_value)
+    
     return page
   
   def create_projects_page(self):
@@ -230,6 +275,7 @@ class MyApp(Adw.Application):
     page.set_margin_end(20)
     
     label = Gtk.Label(label='Projects')
+    label.add_css_class('page_titles')
     page.append(label)
     
     button = Gtk.Button(label='+ New Project')
@@ -261,7 +307,7 @@ class MyApp(Adw.Application):
       page.set_margin_end(20)
                   
       label = Gtk.Label(label = name)
-      label.add_css_class("page-header")
+      label.add_css_class('page_titles') 
       page.append(label)
       return page
   
@@ -459,7 +505,6 @@ class MyApp(Adw.Application):
   #Calls for the above function and then lets the application based on Adw(Libadwaita) do its normal shutdown procedure 
   def do_shutdown(self):
     GLib.source_remove(self.timer_id)
-    GLib.source_remove(self.auto_save_timer)
     self.prepare_for_close()
     Adw.Application.do_shutdown(self)
     
@@ -540,6 +585,24 @@ class MyApp(Adw.Application):
   def auto_save(self):
     self.storage.save(self.projects)
     return True
+
+  def auto_save_updated(self, spin_button):
+    self.auto_save_interval = spin_button.get_value_as_int()
+    
+    if self.auto_save_timer_id is not None:
+      GLib.source_remove(self.auto_save_timer_id)
+      
+    
+    self.auto_save_timer_id = GLib.timeout_add_seconds(self.auto_save_interval * 60, self.auto_save)
+    
+    self.auto_save_status.set_text(f"Auto-save interval : {self.auto_save_interval} minute(s)")
+    
+  def auto_save_committed(self, widget):
+    minutes = self.auto_save_timer_value.get_value_as_int()
+  
+    self.auto_save_status.set_text(f"Auto-save interval : {self.auto_save_interval} minute(s)")
+      
+    
  
       
 #If we consider the class Stopwatch to be the framework, this class is like how that framework is showed/displayed in the app

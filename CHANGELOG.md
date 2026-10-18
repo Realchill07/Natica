@@ -49,3 +49,5 @@ October 8 - If Escape key pressed while editing a name then the former name of t
 October 16 - Auto save on every minute
 
 October 19 - Added seperate function for settings page creation
+
+October 19 - Added settings option to set auto save interval by user

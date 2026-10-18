@@ -239,6 +239,7 @@ class MyApp(Adw.Application):
     print(self.auto_save_interval)
     
     auto_save_label = Gtk.Label(label = "Auto save interval (in minutes)")
+    auto_save_label.add_css_class('default_text')
     auto_save_label.set_hexpand(True)
     auto_save_label.set_halign(Gtk.Align.START)
     row.append(auto_save_label)
@@ -247,6 +248,7 @@ class MyApp(Adw.Application):
     
     self.auto_save_timer_value = Gtk.SpinButton(adjustment = adj, climb_rate = 1, digits = 0)
     self.auto_save_timer_value.connect("value-changed", self.auto_save_updated)
+    self.auto_save_timer_value.set_size_request(150,30)
     self.auto_save_timer_value.set_halign(Gtk.Align.END)
     row.append(self.auto_save_timer_value)
 
@@ -255,7 +257,7 @@ class MyApp(Adw.Application):
     self.auto_save_timer_value.add_controller(focus_controller)   
     
     self.auto_save_status = Gtk.Label(label = "Changes are saved automatically")
-    self.auto_save_status.set_xalign(0)
+    self.auto_save_status.add_css_class('default_text')
     
     page.append(row)
     page.append(self.auto_save_status)

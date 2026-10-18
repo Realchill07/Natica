@@ -51,3 +51,5 @@ October 16 - Auto save on every minute
 October 19 - Added seperate function for settings page creation
 
 October 19 - Added settings option to set auto save interval by user
+
+October 19 - CSS changes

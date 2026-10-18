@@ -39,3 +39,17 @@ window {
 .active-row {
     border: dotted black 2px;
 }
+.page_titles {
+    font-size: 30px;
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: bold;
+    font-display: block;
+    border-bottom: 3px dotted;
+}
+.default_text {
+    font-size: 15px;
+    font-weight: 600;
+}
+spinbutton{
+    font-size: 20px;
+}

@@ -61,3 +61,5 @@ October 26 - Tags manager added in settings page
 October 26 - Added the deletion option in tags manager
 
 October 26 - Added css to tags manager
+
+October 26 - Added the ability to apply tags to a project

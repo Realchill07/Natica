@@ -733,7 +733,6 @@ class MyApp(Adw.Application):
     content.set_margin_bottom(20)
     content.set_margin_start(20)
     content.set_margin_end(20)
-    content.set_size_request(300, 300)
         
     title = Gtk.Label(label = 'Add Tags')
     content.append(title)
@@ -747,10 +746,13 @@ class MyApp(Adw.Application):
     scroll.set_child(tag_box)
     content.append(scroll)
     
+    checkboxes = []
+    
     for tag in self.tags_list:
       checkbox = Gtk.CheckButton(label = tag["name"])
       checkbox.set_active(tag["id"] in stopwatch.tags)
       tag_box.append(checkbox)
+      checkboxes.append((tag,checkbox))
       
     button_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL,spacing=10)
     
@@ -766,24 +768,12 @@ class MyApp(Adw.Application):
     def apply_tags(button):
       stopwatch.tags = [
         tag["id"]
-        for tag in self.tags_list
-        if any(
-          child.get_label() == tag["name"] and child.get_active()
-          for child in self._tag_checkboxes
-          )
+        for tag, checkbox in checkboxes
+        if checkbox.get_active()
       ]
+
       self.storage.save(self.projects, self.tags_list)
       dialog.close()
-    
-    self._tag_checkboxes = [
-      child for child in []
-    ]
-    
-    child = tag_box.get_first_child()
-    
-    while child is not None:
-      self._tag_checkboxes.append(child)
-      child = child.get_next_sibling()
       
     save_button.connect('clicked',apply_tags)
     content.append(button_box)

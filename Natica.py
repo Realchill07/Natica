@@ -22,6 +22,7 @@ class Stopwatch:
         self.running = False
         self.children = []
         self.parent = parent
+        self.tags = []
 
     def start(self):
         if self.running:
@@ -75,6 +76,7 @@ class Stopwatch:
         "accumulatedSeconds": self.accumulatedSeconds,
         "startTime": self.startTime,
         "running": self.running,
+        "tags":self.tags,
         "children": [child.to_dict() for child in self.children]
     }  
       
@@ -88,10 +90,12 @@ class Stopwatch:
       stopwatch.accumulatedSeconds = data['accumulatedSeconds']
       stopwatch.startTime = data['startTime']
       stopwatch.running = data['running']
+      stopwatch.tag = data.get("tags",[])
       
       for child_data in data["children"]:
         child = cls.from_dict(child_data, stopwatch)
         stopwatch.children.append(child)
+      
       return stopwatch
            
 def timeformat(total_seconds):
@@ -105,11 +109,12 @@ class MyApp(Adw.Application):
   def __init__(self):
     super().__init__(application_id = 'io.github.realchill07.Natica')
     self.projects = []
+    self.tags = []
     self.project_label = {}
     self.project_buttons = {}
     self.project_widgets = {}
     self.storage = Storage()
-    self.projects = self.storage.load()
+    self.projects, self.tags_list = self.storage.load()
     self.auto_save_timer_id = None
     self.auto_save_interval = 5
     
@@ -235,7 +240,11 @@ class MyApp(Adw.Application):
     label.add_css_class('page_titles') 
     page.append(label)  
     
-    row = Gtk.Box(orientation = Gtk.Orientation.HORIZONTAL, spacing = 12)
+    main_save_box = Gtk.Box(orientation = Gtk.Orientation.VERTICAL, spacing = 10)
+    auto_save_row = Gtk.Box(orientation = Gtk.Orientation.HORIZONTAL, spacing = 12)
+    main_save_box.add_css_class('box-shadow')
+    main_save_box.append(auto_save_row)
+    main_tag_row = Gtk.Box(orientation = Gtk.Orientation.HORIZONTAL, spacing = 12)
     
     print(self.auto_save_interval)
     
@@ -243,7 +252,7 @@ class MyApp(Adw.Application):
     auto_save_label.add_css_class('default_text')
     auto_save_label.set_hexpand(True)
     auto_save_label.set_halign(Gtk.Align.START)
-    row.append(auto_save_label)
+    auto_save_row.append(auto_save_label)
     
     adj = Gtk.Adjustment(value = self.auto_save_interval, lower = 1, upper = 60, step_increment = 1, page_increment = 5, page_size = 0)
     
@@ -251,17 +260,51 @@ class MyApp(Adw.Application):
     self.auto_save_timer_value.connect("value-changed", self.auto_save_updated)
     self.auto_save_timer_value.set_size_request(150,30)
     self.auto_save_timer_value.set_halign(Gtk.Align.END)
-    row.append(self.auto_save_timer_value)
+    auto_save_row.append(self.auto_save_timer_value)
 
     focus_controller = Gtk.EventControllerFocus()
     focus_controller.connect("leave", self.auto_save_committed)
     self.auto_save_timer_value.add_controller(focus_controller)   
     
     self.auto_save_status = Gtk.Label(label = "Changes are saved automatically")
-    self.auto_save_status.add_css_class('default_text')
+    self.auto_save_status.add_css_class('default_text')   
+    main_save_box.append(self.auto_save_status)
     
-    page.append(row)
-    page.append(self.auto_save_status)
+    scroll_window = Gtk.ScrolledWindow()
+    scroll_window.set_policy(
+      Gtk.PolicyType.NEVER,
+      Gtk.PolicyType.AUTOMATIC
+    )
+    scroll_window.set_size_request(50,150)
+    
+    main_tag_box = Gtk.Box(orientation = Gtk.Orientation.VERTICAL, spacing = 10)
+    main_tag_box.add_css_class('box-shadow')
+
+    tag_head_title = Gtk.Label(label='Tags')
+    tag_head_title.add_css_class('default_text')
+    tag_head_title.set_hexpand(True)
+    tag_head_title.set_halign(Gtk.Align.START)
+    main_tag_row.append(tag_head_title)
+    
+    add_tag_button = Gtk.Button(label='Add a Tag')
+    add_tag_button.connect("clicked", self.add_tag)
+    add_tag_button.set_hexpand(True)
+    add_tag_button.set_halign(Gtk.Align.END)
+    main_tag_row.append(add_tag_button)
+    
+    main_tag_box.append(main_tag_row)
+    
+    
+    self.tags_manage = Gtk.Box(orientation = Gtk.Orientation.VERTICAL,spacing = 10)
+    self.tags_manage.add_css_class('tag-manage')
+    scroll_window.set_child(self.tags_manage)
+    
+    main_tag_box.append(scroll_window)
+    
+    self.refresh_tags()
+    
+    page.append(main_save_box)
+    page.append(main_tag_box)
     
     
     self.auto_save_timer_value.connect("activate",self.auto_save_committed)
@@ -357,7 +400,7 @@ class MyApp(Adw.Application):
     
     self.on_add_child(None, stopwatch, project_widget)
     
-    self.storage.save(self.projects)
+    self.storage.save(self.projects, self.tags_list)
   
   #Decides which function runs for when THE_button is clicked
   def on_start_clicked(self, button, stopwatch):
@@ -408,7 +451,7 @@ class MyApp(Adw.Application):
     
     parent_widget.children_box.append(child_widget)  
   
-    self.storage.save(self.projects)     
+    self.storage.save(self.projects, self.tags_list)
     
   #Changes the label of THE_button 
   def update_button_label(self, stopwatch):
@@ -486,8 +529,8 @@ class MyApp(Adw.Application):
       project.name_stack.set_visible_child_name("label")
       project.editing = False   
     
+    self.storage.save(self.projects, self.tags_list)
     
-    self.storage.save(self.projects)
     
   # Function which activates when the window is closed, so that next time the app is opened and data is loaded the task timer doesnt include the period when the app was closed
   def interrupt_stopwatch(self, stopwatch):
@@ -504,7 +547,7 @@ class MyApp(Adw.Application):
   #calls the helper function and saves the data in a save file
   def prepare_for_close(self):
     self.interrupt_running_timers()
-    self.storage.save(self.projects)
+    self.storage.save(self.projects, self.tags_list)
 
   #Calls for the above function and then lets the application based on Adw(Libadwaita) do its normal shutdown procedure 
   def do_shutdown(self):
@@ -544,8 +587,8 @@ class MyApp(Adw.Application):
         
       
     widget.unparent()
+    self.storage.save(self.projects, self.tags_list)
     
-    self.storage.save(self.projects)
     
   def pointer_on_hover(self, widget):
     controller = Gtk.EventControllerMotion.new()
@@ -587,7 +630,7 @@ class MyApp(Adw.Application):
     
   #It is called every minute to save the state of timers
   def auto_save(self):
-    self.storage.save(self.projects)
+    self.storage.save(self.projects, self.tags_list)
     return True
 
   def auto_save_updated(self, spin_button):
@@ -605,8 +648,63 @@ class MyApp(Adw.Application):
     minutes = self.auto_save_timer_value.get_value_as_int()
   
     self.auto_save_status.set_text(f"Auto-save interval : {self.auto_save_interval} minute(s)")
-      
     
+  def add_tag(self, button):
+    self.tag_name_entry = Gtk.Entry()
+    self.tag_name_entry.set_placeholder_text("Enter tag name")
+    
+    self.tag_name_entry.connect('activate',self.tag_for_ui)
+    
+    self.tags_manage.append(self.tag_name_entry)
+    self.tag_name_entry.grab_focus()
+      
+      
+  def tag_for_ui(self,entry):
+    name = entry.get_text()
+    
+    if not name:
+      return 
+    
+    if any(tag["name"].casefold() == name.casefold() for tag in self.tags_list):  
+      entry.set_text("")
+      return
+    
+    tag = {
+      "id" : str(uuid.uuid4()),
+      "name" : name 
+    }
+    
+    self.tags_list.append(tag)
+    
+    self.tags_manage.remove(entry)
+    
+    self.refresh_tags()
+
+    self.storage.save(self.projects, self.tags_list)
+    
+    
+  def refresh_tags(self):
+    child = self.tags_manage.get_first_child()
+    
+    while child is not None:
+      next_child = child.get_next_sibling()
+      self.tags_manage.remove(child)
+      child = next_child
+      
+    for tag in self.tags_list:
+      ind_tag_row = Gtk.Box(orientation = Gtk.Orientation.HORIZONTAL, spacing = 10)
+      
+      label = Gtk.Label(label = tag["name"])  
+      label.add_css_class('tag-name')
+      label.set_halign(Gtk.Align.START)
+      label.set_hexpand(True)
+      ind_tag_row.append(label)
+      
+      delete_button = Gtk.Button(label = 'Delete')    
+      delete_button.connect('clicked', self.delete_tag, tag["id"])
+      ind_tag_row.append(delete_button)
+      
+      self.tags_manage.append(ind_tag_row)
  
       
 #If we consider the class Stopwatch to be the framework, this class is like how that framework is showed/displayed in the app
@@ -842,12 +940,13 @@ class Storage:
 
     os.makedirs(self.directory,exist_ok=True)
     
-  def save(self, projects):
+  def save(self, projects, tags_list):
     data = {
       "projects": [
         project.to_dict()
-        for project in projects   
-      ]
+        for project in projects  
+      ],
+      "tags": tags_list
     }
     
     with open (self.file_path, "w") as file:
@@ -855,7 +954,7 @@ class Storage:
       
   def load(self):
     if not os.path.exists(self.file_path):
-      return []
+      return [],[]
     
     with open (self.file_path, "r") as file:
       data = json.load(file)
@@ -866,7 +965,9 @@ class Storage:
       project = Stopwatch.from_dict(project_data)
       projects.append(project)
       
-    return projects
+    tags_list = data.get("tags",[])
+      
+    return projects, tags_list
   
 test = MyApp()
 test.run()

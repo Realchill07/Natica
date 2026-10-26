@@ -55,3 +55,5 @@ October 19 - Added settings option to set auto save interval by user
 October 19 - CSS changes
 
 October 19 - Minor CSS changes
+
+October 26 - Tags manager added in settings page

@@ -766,11 +766,18 @@ class MyApp(Adw.Application):
     close_button.connect('clicked', lambda f: dialog.close())
     
     def apply_tags(button):
-      stopwatch.tags = [
+      selected_tags = [
         tag["id"]
         for tag, checkbox in checkboxes
         if checkbox.get_active()
       ]
+      def apply_recursively(stopwatch):
+        stopwatch.tags = selected_tags.copy()
+        
+        for child in stopwatch.children:
+          apply_recursively(child)
+      
+      apply_recursively(stopwatch)
 
       self.storage.save(self.projects, self.tags_list)
       dialog.close()

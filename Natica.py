@@ -90,7 +90,7 @@ class Stopwatch:
       stopwatch.accumulatedSeconds = data['accumulatedSeconds']
       stopwatch.startTime = data['startTime']
       stopwatch.running = data['running']
-      stopwatch.tag = data.get("tags",[])
+      stopwatch.tags = data.get("tags",[])
       
       for child_data in data["children"]:
         child = cls.from_dict(child_data, stopwatch)
@@ -275,7 +275,7 @@ class MyApp(Adw.Application):
       Gtk.PolicyType.NEVER,
       Gtk.PolicyType.AUTOMATIC
     )
-    scroll_window.set_size_request(50,150)
+    scroll_window.set_min_content_height(150)
     
     main_tag_box = Gtk.Box(orientation = Gtk.Orientation.VERTICAL, spacing = 10)
     main_tag_box.add_css_class('box-shadow')
@@ -557,7 +557,7 @@ class MyApp(Adw.Application):
     
   def on_delete_clicked(self, button, stopwatch, widget):
     
-    dialog = Adw.AlertDialog.new("Delete Project?", f'Delete  "{stopwatch.name}"?')
+    dialog = Adw.AlertDialog.new("Delete Project?", f'Delete  ",{stopwatch.name}"?')
     
     dialog.add_response("cancel", "Cancel")
     dialog.add_response("delete", "Delete")
@@ -722,6 +722,75 @@ class MyApp(Adw.Application):
       ind_tag_row.append(delete_button)
       
       self.tags_manage.append(ind_tag_row)
+      
+  def add_tag_to_project(self, button, stopwatch, widget): 
+    dialog = Adw.Dialog()
+    
+    content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL,spacing=10)
+    content.set_size_request(300,250)
+
+    content.set_margin_top(20)
+    content.set_margin_bottom(20)
+    content.set_margin_start(20)
+    content.set_margin_end(20)
+    content.set_size_request(300, 300)
+        
+    title = Gtk.Label(label = 'Add Tags')
+    content.append(title)
+    
+    scroll = Gtk.ScrolledWindow()
+    scroll.set_min_content_height(200)
+    scroll.set_vexpand(True)
+    
+    tag_box = Gtk.Box(orientation = Gtk.Orientation.VERTICAL, spacing = 8)
+    
+    scroll.set_child(tag_box)
+    content.append(scroll)
+    
+    for tag in self.tags_list:
+      checkbox = Gtk.CheckButton(label = tag["name"])
+      checkbox.set_active(tag["id"] in stopwatch.tags)
+      tag_box.append(checkbox)
+      
+    button_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL,spacing=10)
+    
+    save_button = Gtk.Button(label="Save")
+    save_button.set_hexpand(True)
+    close_button = Gtk.Button(label="Close")
+    close_button.set_hexpand(True)
+    button_box.append(save_button)
+    button_box.append(close_button)
+    
+    close_button.connect('clicked', lambda f: dialog.close())
+    
+    def apply_tags(button):
+      stopwatch.tags = [
+        tag["id"]
+        for tag in self.tags_list
+        if any(
+          child.get_label() == tag["name"] and child.get_active()
+          for child in self._tag_checkboxes
+          )
+      ]
+      self.storage.save(self.projects, self.tags_list)
+      dialog.close()
+    
+    self._tag_checkboxes = [
+      child for child in []
+    ]
+    
+    child = tag_box.get_first_child()
+    
+    while child is not None:
+      self._tag_checkboxes.append(child)
+      child = child.get_next_sibling()
+      
+    save_button.connect('clicked',apply_tags)
+    content.append(button_box)
+      
+    dialog.set_child(content)
+    
+    dialog.present(self.window)  
  
       
 #If we consider the class Stopwatch to be the framework, this class is like how that framework is showed/displayed in the app
@@ -927,10 +996,16 @@ class project_row(Gtk.Box):
     #calls its main function through run then calls which also call popdown before 
     #calling the intended function
     add_child_button.connect('clicked',run_then_close(self.app.on_add_child))
+    
+    #add tag button
+    add_tag = Gtk.Button(label = 'Add tag')
+    add_tag.set_has_frame(False)
+    add_tag.connect('clicked', run_then_close(self.app.add_tag_to_project))
 
     menu_box.append(edit_button)
     menu_box.append(delete_button)
     menu_box.append(add_child_button)
+    menu_box.append(add_tag)
 
     popup.set_child(menu_box)
 

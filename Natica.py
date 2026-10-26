@@ -681,7 +681,24 @@ class MyApp(Adw.Application):
     self.refresh_tags()
 
     self.storage.save(self.projects, self.tags_list)
+
+  def delete_tag(self, button, tag_id):
+    self.tags_list = [
+        tag for tag in self.tags_list
+        if tag["id"] != tag_id
+      ]
     
+    def remove_tag_from_projects(stopwatch):
+      if tag_id in stopwatch.tags:
+        stopwatch.tags.remove(tag_id)
+      for child in stopwatch.children:
+        remove_tag_from_projects(child)
+        
+    for project in self.projects:
+      remove_tag_from_projects(project)
+        
+    self.storage.save(self.projects, self.tags_list)
+    self.refresh_tags()    
     
   def refresh_tags(self):
     child = self.tags_manage.get_first_child()

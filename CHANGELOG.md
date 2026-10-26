@@ -57,3 +57,7 @@ October 19 - CSS changes
 October 19 - Minor CSS changes
 
 October 26 - Tags manager added in settings page
+
+October 26 - Added the deletion option in tags manager
+
+October 26 - Added css to tags manager

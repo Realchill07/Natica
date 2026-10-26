@@ -73,7 +73,7 @@ spinbutton{
 }
 .box-shadow {
     background: @card_bg_color;
-    border: 1px solid alpha(@borders,0.6);
+    border: 1px solid alpha(@borders,0.7);
     border-radius: 10px;
     padding: 10px;
-}
+} 

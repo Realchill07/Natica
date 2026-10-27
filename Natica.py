@@ -149,7 +149,7 @@ class MyApp(Adw.Application):
      
     self.stack.add_named(self.create_home_page(),'home')
     self.stack.add_named(self.create_projects_page(),'projects')
-    self.stack.add_named(self.create_page("Reports"), "reports")
+    self.stack.add_named(self.create_report_page(), "report")
     self.stack.add_named(self.create_page("Statistics"), "stats")
     self.stack.add_named(self.create_settings_page(), "settings")
     
@@ -158,7 +158,7 @@ class MyApp(Adw.Application):
       ("🏠 Home",'home'),
     # This is for sidebar i.e. ("this is displayed in sidebar","kind of an id")
       ("📁 Projects",'projects'),
-      ('📊 Reports','reports'),
+      ('📊 report','report'),
       ('📈 Statistics','stats'),
       ("⚙ Settings", "settings"),
     ]
@@ -224,7 +224,7 @@ class MyApp(Adw.Application):
     page.set_margin_end(20)
                 
     label = Gtk.Label(label='Home')
-    label.add_css_class('page_titles')
+    label.add_css_class('page-titles')
     page.append(label)
     return page
   
@@ -237,7 +237,7 @@ class MyApp(Adw.Application):
     page.set_margin_end(20)
 
     label = Gtk.Label(label = 'Settings')
-    label.add_css_class('page_titles') 
+    label.add_css_class('page-titles') 
     page.append(label)  
     
     main_save_box = Gtk.Box(orientation = Gtk.Orientation.VERTICAL, spacing = 10)
@@ -249,7 +249,7 @@ class MyApp(Adw.Application):
     print(self.auto_save_interval)
     
     auto_save_label = Gtk.Label(label = "Auto save interval (in minutes)")
-    auto_save_label.add_css_class('default_text')
+    auto_save_label.add_css_class('default-text')
     auto_save_label.set_hexpand(True)
     auto_save_label.set_halign(Gtk.Align.START)
     auto_save_row.append(auto_save_label)
@@ -267,7 +267,7 @@ class MyApp(Adw.Application):
     self.auto_save_timer_value.add_controller(focus_controller)   
     
     self.auto_save_status = Gtk.Label(label = "Changes are saved automatically")
-    self.auto_save_status.add_css_class('default_text')   
+    self.auto_save_status.add_css_class('default-text')   
     main_save_box.append(self.auto_save_status)
     
     scroll_window = Gtk.ScrolledWindow()
@@ -281,7 +281,7 @@ class MyApp(Adw.Application):
     main_tag_box.add_css_class('box-shadow')
 
     tag_head_title = Gtk.Label(label='Tags')
-    tag_head_title.add_css_class('default_text')
+    tag_head_title.add_css_class('default-text')
     tag_head_title.set_hexpand(True)
     tag_head_title.set_halign(Gtk.Align.START)
     main_tag_row.append(tag_head_title)
@@ -312,6 +312,20 @@ class MyApp(Adw.Application):
     
     return page
   
+  def create_report_page(self):
+    page = Gtk.Box(orientation = Gtk.Orientation.VERTICAL, spacing = 10)
+    
+    page.set_margin_top(20)
+    page.set_margin_bottom(20)
+    page.set_margin_start(20)
+    page.set_margin_end(20)
+    
+    label = Gtk.Label(label='Report')
+    label.add_css_class('page-titles')
+    page.append(label)
+    
+    return page
+  
   def create_projects_page(self):
     page = Gtk.Box(orientation = Gtk.Orientation.VERTICAL, spacing = 10)
     
@@ -321,7 +335,7 @@ class MyApp(Adw.Application):
     page.set_margin_end(20)
     
     label = Gtk.Label(label='Projects')
-    label.add_css_class('page_titles')
+    label.add_css_class('page-titles')
     page.append(label)
     
     button = Gtk.Button(label='+ New Project')
@@ -354,7 +368,7 @@ class MyApp(Adw.Application):
       page.set_margin_end(20)
                   
       label = Gtk.Label(label = name)
-      label.add_css_class('page_titles') 
+      label.add_css_class('page-titles') 
       page.append(label)
       return page
   
@@ -735,6 +749,7 @@ class MyApp(Adw.Application):
     content.set_margin_end(20)
         
     title = Gtk.Label(label = 'Add Tags')
+    title.add_css_class('default-text')
     content.append(title)
     
     scroll = Gtk.ScrolledWindow()
@@ -750,6 +765,7 @@ class MyApp(Adw.Application):
     
     for tag in self.tags_list:
       checkbox = Gtk.CheckButton(label = tag["name"])
+      checkbox.add_css_class('tag-name')
       checkbox.set_active(tag["id"] in stopwatch.tags)
       tag_box.append(checkbox)
       checkboxes.append((tag,checkbox))

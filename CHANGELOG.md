@@ -67,3 +67,5 @@ October 26 - Added the ability to apply tags to a project
 October 26 - Apply tags recursively to all descendants of a tagged project
 
 October 27 - Added seperate function for report page creation
+
+November 1 - Tagged projects can be filtered by tag in reports page

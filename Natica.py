@@ -97,6 +97,12 @@ class Stopwatch:
         stopwatch.children.append(child)
       
       return stopwatch
+    
+    @property
+    
+    def all_tags(self):
+      inherited = self.parent.all_tags if self.parent else []
+      return list(dict.fromkeys(inherited + self.tags))
            
 def timeformat(total_seconds):
     total_seconds = int(total_seconds)
@@ -158,7 +164,7 @@ class MyApp(Adw.Application):
       ("🏠 Home",'home'),
     # This is for sidebar i.e. ("this is displayed in sidebar","kind of an id")
       ("📁 Projects",'projects'),
-      ('📊 report','report'),
+      ('📊 Report','report'),
       ('📈 Statistics','stats'),
       ("⚙ Settings", "settings"),
     ]
@@ -313,18 +319,34 @@ class MyApp(Adw.Application):
     return page
   
   def create_report_page(self):
-    page = Gtk.Box(orientation = Gtk.Orientation.VERTICAL, spacing = 10)
+    self.reports_page = Gtk.Box(orientation = Gtk.Orientation.VERTICAL, spacing = 10)
     
-    page.set_margin_top(20)
-    page.set_margin_bottom(20)
-    page.set_margin_start(20)
-    page.set_margin_end(20)
+    self.reports_page.set_margin_top(20)
+    self.reports_page.set_margin_bottom(20)
+    self.reports_page.set_margin_start(20)
+    self.reports_page.set_margin_end(20)
     
     label = Gtk.Label(label='Report')
     label.add_css_class('page-titles')
-    page.append(label)
+    self.reports_page.append(label)
     
-    return page
+    tags = Gtk.StringList()
+    for tag in self.tags_list:
+      tags.append(tag["name"])
+      
+    dropdown = Gtk.DropDown(model = tags)
+    dropdown.connect("notify::selected-item", self.on_tag_selected)
+    
+    self.reports_page.append(dropdown)
+
+    self.show_box = Gtk.Box(orientation = Gtk.Orientation.VERTICAL, spacing = 10)
+    
+    dropdown.set_selected(0)
+    self.on_tag_selected(dropdown, None)
+    
+    self.reports_page.append(self.show_box)
+    
+    return self.reports_page
   
   def create_projects_page(self):
     page = Gtk.Box(orientation = Gtk.Orientation.VERTICAL, spacing = 10)
@@ -339,7 +361,7 @@ class MyApp(Adw.Application):
     page.append(label)
     
     button = Gtk.Button(label='+ New Project')
-    button.add_css_class('new_project')
+    button.add_css_class('new-project')
     button.connect("clicked", self.on_click_new_project)
     self.pointer_on_hover(button)
     page.append(button)
@@ -762,11 +784,20 @@ class MyApp(Adw.Application):
     content.append(scroll)
     
     checkboxes = []
+    inherited_tags = set(stopwatch.parent.all_tags) if stopwatch.parent else []
     
     for tag in self.tags_list:
       checkbox = Gtk.CheckButton(label = tag["name"])
       checkbox.add_css_class('tag-name')
-      checkbox.set_active(tag["id"] in stopwatch.tags)
+      
+      is_inherited = tag["id"] in inherited_tags
+      is_own = tag["id"] in stopwatch.tags
+      
+      checkbox.set_active(is_inherited or is_own)
+      
+      if is_inherited:
+        checkbox.set_sensitive(False)
+        
       tag_box.append(checkbox)
       checkboxes.append((tag,checkbox))
       
@@ -786,14 +817,10 @@ class MyApp(Adw.Application):
         tag["id"]
         for tag, checkbox in checkboxes
         if checkbox.get_active()
+        and tag["id"] not in inherited_tags
       ]
-      def apply_recursively(stopwatch):
-        stopwatch.tags = selected_tags.copy()
-        
-        for child in stopwatch.children:
-          apply_recursively(child)
       
-      apply_recursively(stopwatch)
+      stopwatch.tags = selected_tags
 
       self.storage.save(self.projects, self.tags_list)
       dialog.close()
@@ -804,6 +831,68 @@ class MyApp(Adw.Application):
     dialog.set_child(content)
     
     dialog.present(self.window)  
+    
+  def on_tag_selected(self, dropdown, param):
+
+    # Clear previous report
+    while child := self.show_box.get_first_child():
+        self.show_box.remove(child)
+
+    selected = dropdown.get_selected_item()
+
+    if not selected:
+        return
+
+    selected_tag_name = selected.get_string()
+
+    selected_tag = next(
+        (tag for tag in self.tags_list
+         if tag["name"] == selected_tag_name),
+        None
+    )
+
+    if not selected_tag:
+        return
+
+    def add_report_row(project):
+        ind_box = Gtk.Box(
+            orientation=Gtk.Orientation.HORIZONTAL,
+            spacing=10
+        )
+
+        label_name = Gtk.Label(label=project.name)
+        label_name.set_hexpand(True)
+        label_name.add_css_class("report-text")
+        label_name.set_halign(Gtk.Align.START)
+
+        time_info = timeformat(project.get_elapsed())
+
+        label_time = Gtk.Label(label=time_info)
+        label_time.add_css_class("report-text")
+        label_time.set_hexpand(True)
+        label_time.set_halign(Gtk.Align.END)
+
+        ind_box.append(label_name)
+        ind_box.append(label_time)
+
+        self.show_box.append(ind_box)
+
+    def display(project):
+
+        # Check directly assigned tags, not inherited tags
+        if selected_tag["id"] in project.tags:
+
+            add_report_row(project)
+
+            # Don't display descendants separately
+            return
+
+        # Search deeper if this project doesn't match
+        for child in project.children:
+            display(child)
+
+    for project in self.projects:
+        display(project)      
  
       
 #If we consider the class Stopwatch to be the framework, this class is like how that framework is showed/displayed in the app

@@ -342,7 +342,7 @@ class MyApp(Adw.Application):
     self.show_box = Gtk.Box(orientation = Gtk.Orientation.VERTICAL, spacing = 10)
     
     self.ind_boxes_container = Gtk.Box(orientation = Gtk.Orientation.VERTICAL, spacing = 10)
-    self.ind_boxes_container.add_css_class("box-shadow")
+    self.ind_boxes_container.add_css_class("parent-row")
     
     self.show_box.append(self.ind_boxes_container)  
     
@@ -843,8 +843,13 @@ class MyApp(Adw.Application):
     
     
     # Clear previous report
-    while child := self.ind_boxes_container.get_first_child():
+    while child := self.show_box.get_first_child():
         self.show_box.remove(child)
+    
+    self.ind_boxes_container = Gtk.Box(orientation = Gtk.Orientation.VERTICAL, spacing = 10)
+    self.ind_boxes_container.add_css_class("parent-row")
+    
+    self.show_box.append(self.ind_boxes_container)
 
     selected = dropdown.get_selected_item()
     
@@ -869,6 +874,8 @@ class MyApp(Adw.Application):
             orientation=Gtk.Orientation.HORIZONTAL,
             spacing=10
         )
+        
+        ind_box.add_css_class("child-row")
 
         label_name = Gtk.Label(label=project.name)
         label_name.set_hexpand(True)
@@ -911,6 +918,7 @@ class MyApp(Adw.Application):
     total_formatted =  timeformat(self.total)
     total_sen = f"Total time spent on this tag - {total_formatted}"
     total_time_tag = Gtk.Label(label = total_sen)
+    total_time_tag.add_css_class("box-shadow")
     total_time_tag.add_css_class("default-text")
     self.show_box.append(total_time_tag)
       

@@ -1,5 +1,5 @@
 .parent-row {
-    background-color: rgba(52, 94, 201, 0.15);
+    background-color: rgba(25, 203, 108, 0.348);
     border: 1px solid rgba(49, 104, 159, 0.4);
     border-radius: 10px;
     padding: 10px;
@@ -7,14 +7,14 @@
 }
 
 .child-row {
-    background-color: rgba(87, 195, 209, 0.08);
+    background-color: rgba(34, 193, 31, 0.29);
     border-left: 3px solid rgba(33, 87, 97, 0.5);
     border-radius: 6px;
     padding: 5px;
 }
 
 window {
-    background-color: rgb(29, 94, 63);
+    background-color: rgb(28, 88, 59);
 }
 
 .navigation-sidebar {
@@ -82,5 +82,17 @@ spinbutton{
     font-weight: 700;
 }
 .ind-tag-group {
-    background-color: rgb(69, 128, 69);
+    background-color: rgba(25, 203, 108, 0.348);
+    border: 1px solid rgba(49, 104, 159, 0.4);
+    border-radius: 10px;
+    padding: 10px;
+    font-size: 16px;
+}
+
+.ind-tag {
+    background-color: rgba(34, 193, 31, 0.29);
+    border-left: 3px solid rgba(33, 87, 97, 0.5);
+    border-radius: 6px;
+    padding: 5px;
+    
 }

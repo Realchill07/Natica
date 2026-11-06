@@ -73,3 +73,7 @@ November 1 - Tagged projects can be filtered by tag in reports page
 November 1 - Children classes with different tag than the parent's tags' are also displayed now
 
 November 7 - Total time spent on projects containing a tag is displayed
+
+November 7 - Bug fix: excessive CPU load and app unresponsive upon tag selection by user in reports page
+
+November 7 - CSS overhaul

@@ -342,14 +342,12 @@ class MyApp(Adw.Application):
     self.show_box = Gtk.Box(orientation = Gtk.Orientation.VERTICAL, spacing = 10)
     
     self.ind_boxes_container = Gtk.Box(orientation = Gtk.Orientation.VERTICAL, spacing = 10)
-    self.ind_boxes_container.add_css_class("parent-row")
+    self.ind_boxes_container.add_css_class("ind-tag-group")
     
     self.show_box.append(self.ind_boxes_container)  
     
     dropdown.set_selected(0)
-    self.on_tag_selected(dropdown, None)    
-    
-          
+    self.on_tag_selected(dropdown, None)            
     
     self.reports_page.append(self.show_box)
     
@@ -847,7 +845,7 @@ class MyApp(Adw.Application):
         self.show_box.remove(child)
     
     self.ind_boxes_container = Gtk.Box(orientation = Gtk.Orientation.VERTICAL, spacing = 10)
-    self.ind_boxes_container.add_css_class("parent-row")
+    self.ind_boxes_container.add_css_class("ind-tag-group")
     
     self.show_box.append(self.ind_boxes_container)
 
@@ -875,7 +873,7 @@ class MyApp(Adw.Application):
             spacing=10
         )
         
-        ind_box.add_css_class("child-row")
+        ind_box.add_css_class("ind-tag")
 
         label_name = Gtk.Label(label=project.name)
         label_name.set_hexpand(True)

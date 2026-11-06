@@ -341,8 +341,15 @@ class MyApp(Adw.Application):
 
     self.show_box = Gtk.Box(orientation = Gtk.Orientation.VERTICAL, spacing = 10)
     
+    self.ind_boxes_container = Gtk.Box(orientation = Gtk.Orientation.VERTICAL, spacing = 10)
+    self.ind_boxes_container.add_css_class("box-shadow")
+    
+    self.show_box.append(self.ind_boxes_container)  
+    
     dropdown.set_selected(0)
-    self.on_tag_selected(dropdown, None)
+    self.on_tag_selected(dropdown, None)    
+    
+          
     
     self.reports_page.append(self.show_box)
     
@@ -833,12 +840,15 @@ class MyApp(Adw.Application):
     dialog.present(self.window)  
     
   def on_tag_selected(self, dropdown, param):
-
+    
+    
     # Clear previous report
-    while child := self.show_box.get_first_child():
+    while child := self.ind_boxes_container.get_first_child():
         self.show_box.remove(child)
 
     selected = dropdown.get_selected_item()
+    
+    self.total = 0
 
     if not selected:
         return
@@ -866,6 +876,8 @@ class MyApp(Adw.Application):
         label_name.set_halign(Gtk.Align.START)
 
         time_info = timeformat(project.get_elapsed())
+        
+        self.total += project.get_elapsed()
 
         label_time = Gtk.Label(label=time_info)
         label_time.add_css_class("report-text")
@@ -874,9 +886,11 @@ class MyApp(Adw.Application):
 
         ind_box.append(label_name)
         ind_box.append(label_time)
+        
+        self.ind_boxes_container.append(ind_box)
 
-        self.show_box.append(ind_box)
-
+        
+    #Helper function
     def display(project):
 
         # Check directly assigned tags, not inherited tags
@@ -893,6 +907,13 @@ class MyApp(Adw.Application):
 
     for project in self.projects:
         display(project)      
+        
+    total_formatted =  timeformat(self.total)
+    total_sen = f"Total time spent on this tag - {total_formatted}"
+    total_time_tag = Gtk.Label(label = total_sen)
+    total_time_tag.add_css_class("default-text")
+    self.show_box.append(total_time_tag)
+      
  
       
 #If we consider the class Stopwatch to be the framework, this class is like how that framework is showed/displayed in the app

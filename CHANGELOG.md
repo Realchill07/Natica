@@ -71,3 +71,5 @@ October 27 - Added seperate function for report page creation
 November 1 - Tagged projects can be filtered by tag in reports page
 
 November 1 - Children classes with different tag than the parent's tags' are also displayed now
+
+November 7 - Total time spent on projects containing a tag is displayed

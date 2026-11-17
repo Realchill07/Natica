@@ -367,6 +367,23 @@ class MyApp(Adw.Application):
     label.add_css_class('page-titles')
     page.append(label)   
     
+    secondary_page = Gtk.Box(orientation = Gtk.Orientation.HORIZONTAL, spacing = 10)
+    page.append(secondary_page)
+    
+    blah = Gtk.Label(label = "Time spent on each project")
+    blah.add_css_class("default-text")
+    
+    secondary_page.append(blah)
+    
+    data = {}
+    
+    for stopwatch in self.projects:
+      data[stopwatch.name] = int(stopwatch.accumulatedSeconds)
+    
+    chart = BarChart()
+    chart.update_data(data)
+    
+    page.append(chart)
     
     return page
   

@@ -78,4 +78,6 @@ November 7 - Bug fix: excessive CPU load and app unresponsive upon tag selection
 
 November 7 - CSS overhaul
 
-November 17 - Added a seperate Stats page function
+November 17 - Added a seperate stats page function
+
+November 17 - Added basic bar chart rendering for stats page

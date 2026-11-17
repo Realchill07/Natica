@@ -77,3 +77,5 @@ November 7 - Total time spent on projects containing a tag is displayed
 November 7 - Bug fix: excessive CPU load and app unresponsive upon tag selection by user in reports page
 
 November 7 - CSS overhaul
+
+November 17 - Added a seperate Stats page function

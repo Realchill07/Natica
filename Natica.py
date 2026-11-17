@@ -4,6 +4,7 @@ import uuid
 import os
 import json
 import platform
+from Charts.bar_chart import BarChart
 
 gi.require_version('Adw','1')
 gi.require_version('Gtk','4.0')
@@ -156,7 +157,7 @@ class MyApp(Adw.Application):
     self.stack.add_named(self.create_home_page(),'home')
     self.stack.add_named(self.create_projects_page(),'projects')
     self.stack.add_named(self.create_report_page(), "report")
-    self.stack.add_named(self.create_page("Statistics"), "stats")
+    self.stack.add_named(self.create_stats_page(), "stats")
     self.stack.add_named(self.create_settings_page(), "settings")
     
     
@@ -166,7 +167,7 @@ class MyApp(Adw.Application):
       ("📁 Projects",'projects'),
       ('📊 Report','report'),
       ('📈 Statistics','stats'),
-      ("⚙ Settings", "settings"),
+      ("⚙ Settings", "settings")
     ]
     
     for title, page_name in self.pages:
@@ -352,6 +353,22 @@ class MyApp(Adw.Application):
     self.reports_page.append(self.show_box)
     
     return self.reports_page
+
+  def create_stats_page(self):
+    
+    page = Gtk.Box(orientation = Gtk.Orientation.VERTICAL, spacing = 10)
+
+    page.set_margin_top(20)
+    page.set_margin_bottom(20)
+    page.set_margin_start(20)
+    page.set_margin_end(20)
+
+    label = Gtk.Label(label='Statistics')
+    label.add_css_class('page-titles')
+    page.append(label)   
+    
+    
+    return page
   
   def create_projects_page(self):
     page = Gtk.Box(orientation = Gtk.Orientation.VERTICAL, spacing = 10)
@@ -1189,6 +1206,7 @@ class Storage:
     tags_list = data.get("tags",[])
       
     return projects, tags_list
+  
   
 test = MyApp()
 test.run()

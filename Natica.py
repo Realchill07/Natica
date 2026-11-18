@@ -632,7 +632,7 @@ class MyApp(Adw.Application):
     
   def on_delete_clicked(self, button, stopwatch, widget):
     
-    dialog = Adw.AlertDialog.new("Delete Project?", f'Delete  ",{stopwatch.name}"?')
+    dialog = Adw.AlertDialog.new("Delete Project?", f'Delete  "{stopwatch.name}"?')
     
     dialog.add_response("cancel", "Cancel")
     dialog.add_response("delete", "Delete")

@@ -378,7 +378,7 @@ class MyApp(Adw.Application):
     data = {}
     
     for stopwatch in self.projects:
-      data[stopwatch.name] = int(stopwatch.accumulatedSeconds)
+      data[stopwatch.name] = int(stopwatch.accumulatedSeconds/3600)
     
     chart = BarChart()
     chart.update_data(data)

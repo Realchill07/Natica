@@ -81,3 +81,5 @@ November 7 - CSS overhaul
 November 17 - Added a seperate stats page function
 
 November 17 - Added basic bar chart rendering for stats page
+
+November 18 - Added scale to the bar chart

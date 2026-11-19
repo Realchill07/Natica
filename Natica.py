@@ -630,7 +630,8 @@ class MyApp(Adw.Application):
     GLib.source_remove(self.timer_id)
     self.prepare_for_close()
     Adw.Application.do_shutdown(self)
-    
+  
+  #shows a dialog box for confirmation on deletion of the project and then calls delete_on_response with the response of the user
   def on_delete_clicked(self, button, stopwatch, widget):
     
     dialog = Adw.AlertDialog.new("Delete Project?", f'Delete  "{stopwatch.name}"?')
@@ -646,7 +647,8 @@ class MyApp(Adw.Application):
     
     dialog.connect("response", self.delete_on_response, stopwatch, widget)
     dialog.present(self.window)
-    
+  
+  #sees the response and decide wether to return simply or delete the project and all its children  
   def delete_on_response(self, dialog, response, stopwatch, widget):
     if response != "delete":
       return
@@ -665,7 +667,7 @@ class MyApp(Adw.Application):
     widget.unparent()
     self.storage.save(self.projects, self.tags_list)
     
-    
+  #changes the cursor to a pointer if it is hovering over a clickable object
   def pointer_on_hover(self, widget):
     controller = Gtk.EventControllerMotion.new()
         
@@ -680,7 +682,7 @@ class MyApp(Adw.Application):
     controller.connect("leave", on_exit)
     widget.add_controller(controller)
     
-  #Function to update and set children visible or not 
+  #Function to update and set children visible or not, it also updates the button's text depending on wether the children are visible or not
   def expand_collapse(self,button,project):
     if project.collapsed is True:
       project.children_box.set_visible(True)
@@ -704,27 +706,28 @@ class MyApp(Adw.Application):
     project.collapsed = True
     project.expand_collapse_button.set_visible(False)
     
-  #It is called every minute to save the state of timers
+  #It is called every user defined minutes to save the state of timers
   def auto_save(self):
     self.storage.save(self.projects, self.tags_list)
     return True
-
+  
+  #updates values whenever the auto_save value is changed
   def auto_save_updated(self, spin_button):
     self.auto_save_interval = spin_button.get_value_as_int()
     
     if self.auto_save_timer_id is not None:
       GLib.source_remove(self.auto_save_timer_id)
       
-    
     self.auto_save_timer_id = GLib.timeout_add_seconds(self.auto_save_interval * 60, self.auto_save)
     
+    #this set_text makes the message dynamic
     self.auto_save_status.set_text(f"Auto-save interval : {self.auto_save_interval} minute(s)")
-    
-  def auto_save_committed(self, widget):
-    minutes = self.auto_save_timer_value.get_value_as_int()
   
+  #this is called by the settings page initially when the page is created and when the value is set although it is redundant in the second case 
+  def auto_save_committed(self, widget):  
     self.auto_save_status.set_text(f"Auto-save interval : {self.auto_save_interval} minute(s)")
-    
+  
+  #takes the input for a new tag and adds it to tags_manage box  
   def add_tag(self, button):
     self.tag_name_entry = Gtk.Entry()
     self.tag_name_entry.set_placeholder_text("Enter tag name")
@@ -734,13 +737,14 @@ class MyApp(Adw.Application):
     self.tags_manage.append(self.tag_name_entry)
     self.tag_name_entry.grab_focus()
       
-      
+    
   def tag_for_ui(self,entry):
     name = entry.get_text()
     
     if not name:
       return 
     
+    #casefold - lowercases the entry; and then it is compared to all the stored tags to see if there is any match and if there is a new tag is not added
     if any(tag["name"].casefold() == name.casefold() for tag in self.tags_list):  
       entry.set_text("")
       return
@@ -750,6 +754,7 @@ class MyApp(Adw.Application):
       "name" : name 
     }
     
+    #tag is added to the list and the text entry is removed from ui and also the ui is updated to include the newly added tag using refresh_tags
     self.tags_list.append(tag)
     
     self.tags_manage.remove(entry)
@@ -758,12 +763,14 @@ class MyApp(Adw.Application):
 
     self.storage.save(self.projects, self.tags_list)
 
+  #used to delete tags from everywhere in the app
   def delete_tag(self, button, tag_id):
     self.tags_list = [
         tag for tag in self.tags_list
         if tag["id"] != tag_id
       ]
     
+    #finds any project with the tag and removes it from there and its children recursively
     def remove_tag_from_projects(stopwatch):
       if tag_id in stopwatch.tags:
         stopwatch.tags.remove(tag_id)
@@ -772,10 +779,12 @@ class MyApp(Adw.Application):
         
     for project in self.projects:
       remove_tag_from_projects(project)
-        
+    
+    #the new tag state is saved and the deleted tag is removed from ui using refresh_tags    
     self.storage.save(self.projects, self.tags_list)
     self.refresh_tags()    
-    
+  
+  #builds the ui containing all the tags 
   def refresh_tags(self):
     child = self.tags_manage.get_first_child()
     
@@ -798,7 +807,8 @@ class MyApp(Adw.Application):
       ind_tag_row.append(delete_button)
       
       self.tags_manage.append(ind_tag_row)
-      
+  
+  #visible when right clicking on a project in the projects page; gives options to add a tag or remove a tag from that particular project and its children recursively   
   def add_tag_to_project(self, button, stopwatch, widget): 
     dialog = Adw.Dialog()
     
@@ -810,10 +820,11 @@ class MyApp(Adw.Application):
     content.set_margin_start(20)
     content.set_margin_end(20)
         
-    title = Gtk.Label(label = 'Add Tags')
+    title = Gtk.Label(label = 'Manage Tags')
     title.add_css_class('default-text')
     content.append(title)
     
+    #this is also a auto scrollable window depending on the amount of content
     scroll = Gtk.ScrolledWindow()
     scroll.set_min_content_height(200)
     scroll.set_vexpand(True)
@@ -826,6 +837,7 @@ class MyApp(Adw.Application):
     checkboxes = []
     inherited_tags = set(stopwatch.parent.all_tags) if stopwatch.parent else []
     
+    #makes all the tags with their respective checkboxes and also filling those checkboxes or not depending if the project already has it 
     for tag in self.tags_list:
       checkbox = Gtk.CheckButton(label = tag["name"])
       checkbox.add_css_class('tag-name')
@@ -835,6 +847,7 @@ class MyApp(Adw.Application):
       
       checkbox.set_active(is_inherited or is_own)
       
+      #if a checkbox is inherited the option to remove it from the child is removed 
       if is_inherited:
         checkbox.set_sensitive(False)
         
@@ -852,6 +865,7 @@ class MyApp(Adw.Application):
     
     close_button.connect('clicked', lambda f: dialog.close())
     
+    #applies the checked tags in that project's tags section but it doesnt store the inherited tags in the children's tags section
     def apply_tags(button):
       selected_tags = [
         tag["id"]
@@ -871,9 +885,9 @@ class MyApp(Adw.Application):
     dialog.set_child(content)
     
     dialog.present(self.window)  
-    
+  
+  #makes the dropdown containing all the tags in the reports page
   def on_tag_selected(self, dropdown, param):
-    
     
     # Clear previous report
     while child := self.show_box.get_first_child():
@@ -902,6 +916,7 @@ class MyApp(Adw.Application):
     if not selected_tag:
         return
 
+    #makes all the projects containing that tag in their own individual boxes with their name and their time
     def add_report_row(project):
         ind_box = Gtk.Box(
             orientation=Gtk.Orientation.HORIZONTAL,
@@ -947,7 +962,8 @@ class MyApp(Adw.Application):
 
     for project in self.projects:
         display(project)      
-        
+    
+    #displays the total time clocked for all the projects' containing that tag   
     total_formatted =  timeformat(self.total)
     total_sen = f"Total time spent on this tag - {total_formatted}"
     total_time_tag = Gtk.Label(label = total_sen)
@@ -974,6 +990,7 @@ class project_row(Gtk.Box):
     #Collapse/Expand button for each task and sub-task
     self.expand_collapse_button = Gtk.Button(label = '+')
     self.row.append(self.expand_collapse_button)
+    self.pointer_on_hover(self.expand_collapse_button)
     self.collapsed = True 
     
     if(stopwatch.children):
@@ -1000,6 +1017,7 @@ class project_row(Gtk.Box):
     self.name_label.set_halign(Gtk.Align.START)
     self.name_label.set_hexpand(True)
     
+    #kind of how it is decided that what will be visible - the final name or the editable name
     self.name_stack.add_named(self.name_label,"label")
     self.name_stack.add_named(self.name_entry,"entry")
     self.name_stack.set_visible_child_name("label")
@@ -1014,35 +1032,24 @@ class project_row(Gtk.Box):
     
     #Edit Button
     self.editing = False
-    # self.edit_button = Gtk.Button(label = "Edit")
-    # self.pointer_on_hover(self.edit_button)
-    # self.row.append(self.edit_button)
     
     #Button to resume/start/pause the stopwatch
     self.THE_button = Gtk.Button(label = 'Start')
     self.row.append(self.THE_button)
     self.pointer_on_hover(self.THE_button)
-    
-    #BUtton to delete
-    # self.delete_button = Gtk.Button(label = 'Delete')
-    # self.row.append(self.delete_button)
-    # self.pointer_on_hover(self.delete_button)
-      
-    #Button to add a child 
-    # self.child_button = Gtk.Button(label = '+')
-    # self.row.append(self.child_button)
-    # self.pointer_on_hover(self.child_button)
   
     #row for each children... duh
     self.children_box = Gtk.Box(orientation= Gtk.Orientation.VERTICAL, spacing = 7)
     self.children_box.set_margin_start(25)
     
+    #calls the on_right_click if the right button is clicked on the mouse, helps in showing the right click menu for a project
     gesture_menu = Gtk.GestureClick()
     gesture_menu.set_button(3)
     gesture_menu.set_propagation_phase(Gtk.PropagationPhase.CAPTURE)
     gesture_menu.connect("pressed",self.on_right_click, stopwatch)
     self.row.add_controller(gesture_menu)
 
+    #calls on_left_click if the left button is clicked on the mouse, helps in controlling wether the children of a project are visible or not
     gesture_expand = Gtk.GestureClick()
     gesture_expand.set_button(1)
     gesture_expand. set_propagation_phase(Gtk.PropagationPhase.CAPTURE)
@@ -1053,7 +1060,8 @@ class project_row(Gtk.Box):
     
     self.append(self.row)
     self.append(self.children_box)
-    
+  
+  #it is also here since i couldn't figure out why self.app is not working above on THE_button 🥀 but is working below; same task though
   def pointer_on_hover(self, widget):
     controller = Gtk.EventControllerMotion.new()
         
@@ -1069,7 +1077,7 @@ class project_row(Gtk.Box):
     widget.add_controller(controller)
   
      
-  #Decided wether to expand/collapse a row's children or rename depending on number of left clicks
+  #Decides wether to expand/collapse a row's children or rename depending on number of left clicks in a 300ms time period
   def on_left_click(self, gesture, n_press, x, y):
     if self.editing: return
     if n_press == 1:
@@ -1114,6 +1122,7 @@ class project_row(Gtk.Box):
     
     return False
   
+  #since some css is added when a project is active, it adds and removes the active css class on projects and sub-projects 
   def update_active_state(self):
     if self.stopwatch.running:
       self.add_css_class('active-row')
@@ -1131,6 +1140,7 @@ class project_row(Gtk.Box):
         spacing=0
     )
     
+    #closes the menu automatically when a button is clicked 
     def run_then_close(action):
       def handler(_button):
         popup.popdown()
@@ -1161,8 +1171,8 @@ class project_row(Gtk.Box):
     #calling the intended function
     add_child_button.connect('clicked',run_then_close(self.app.on_add_child))
     
-    #add tag button
-    add_tag = Gtk.Button(label = 'Add tag')
+    #Manage tag button
+    add_tag = Gtk.Button(label = 'Manage tag')
     add_tag.set_has_frame(False)
     add_tag.connect('clicked', run_then_close(self.app.add_tag_to_project))
 
@@ -1195,7 +1205,8 @@ class Storage:
     self.file_path = os.path.join(self.directory,"data.json")
 
     os.makedirs(self.directory,exist_ok=True)
-    
+  
+  #writes to the save file   
   def save(self, projects, tags_list):
     data = {
       "projects": [
@@ -1207,7 +1218,8 @@ class Storage:
     
     with open (self.file_path, "w") as file:
       json.dump(data, file, indent = 2)
-      
+  
+  #reads from the save file     
   def load(self):
     if not os.path.exists(self.file_path):
       return [],[]
@@ -1226,5 +1238,5 @@ class Storage:
     return projects, tags_list
   
   
-test = MyApp()
-test.run()
+Natica = MyApp()
+Natica.run()

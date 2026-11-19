@@ -14,7 +14,7 @@ August 10 - Minor bug fix
 August 11 - A child is automatically created when a new project is made, button label reflects the current state of children and parent's
 
 August 13 - Added data persistance across different sessions using JSON 
-P.S. - Going to work on it only on Thursdays from now on
+P.S. - Going to work on it only on Thursdays from now on(future me: yeah this rule didn't stick, worked on it whenever I had free time and resources, otherwise this would have taken so much more longer)
 
 August 14 - Updated storage class so that it saves the data wether it be windows or linux
 
@@ -85,3 +85,5 @@ November 17 - Added basic bar chart rendering for stats page
 November 18 - Added scale to the bar chart
 
 Novemeber 19 - Bug fix - Pausing a grand-child was not updating grand-parent and above
+
+November 19 - Code review and commenting/documentation

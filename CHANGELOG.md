@@ -83,3 +83,5 @@ November 17 - Added a seperate stats page function
 November 17 - Added basic bar chart rendering for stats page
 
 November 18 - Added scale to the bar chart
+
+Novemeber 19 - Bug fix - Pausing a grand-child was not updating grand-parent and above

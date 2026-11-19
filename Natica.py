@@ -69,7 +69,8 @@ class Stopwatch:
         else:
             daddy.start()
         self.start()
-      
+        
+    #formatting the data in order to be saved in the json file
     def to_dict(self):
       return {
         "id": self.id,
@@ -83,6 +84,7 @@ class Stopwatch:
       
     @classmethod
     
+    #reading from the saved data from the json file in a specific format fitting our system design
     def from_dict(cls, data, parent = None):
       stopwatch = cls(
         data['name'], parent
@@ -101,6 +103,7 @@ class Stopwatch:
     
     @property
     
+    #applies the parent's tags on the children recursively
     def all_tags(self):
       inherited = self.parent.all_tags if self.parent else []
       return list(dict.fromkeys(inherited + self.tags))
@@ -129,6 +132,7 @@ class MyApp(Adw.Application):
     self.quit()
     return False
   
+  #stuff that will happen on the app start with no user input
   def do_activate(self):
     self.window = Adw.ApplicationWindow(application = self)
     self.window.set_title('Natica')
@@ -190,7 +194,8 @@ class MyApp(Adw.Application):
     
     
     # setting up the layout
-    # this is dependent on order so if i put main_box.apped(self.stack) and then main_box.append(sidebar) then the sidebar will on right
+    # this is dependent on order so if i put main_box.apped(self.stack) and 
+    # then main_box.append(sidebar) then the sidebar will on right
     main_box.append(sidebar)
     main_box.append(self.stack)
     
@@ -201,6 +206,7 @@ class MyApp(Adw.Application):
     toolbar.add_top_bar(header)
     toolbar.set_content(main_box)
     
+    #importing the css file 
     provider = Gtk.CssProvider()
 
     css_path = os.path.join(
@@ -220,7 +226,6 @@ class MyApp(Adw.Application):
     self.window.present()
     
     self.timer_id = GLib.timeout_add(1000, self.on_tick)
-
     
   def create_home_page(self):
     page = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing = 10)
@@ -261,6 +266,7 @@ class MyApp(Adw.Application):
     auto_save_label.set_halign(Gtk.Align.START)
     auto_save_row.append(auto_save_label)
     
+    #the below line is needed for the spinButton, it tells it what and how to do
     adj = Gtk.Adjustment(value = self.auto_save_interval, lower = 1, upper = 60, step_increment = 1, page_increment = 5, page_size = 0)
     
     self.auto_save_timer_value = Gtk.SpinButton(adjustment = adj, climb_rate = 1, digits = 0)
@@ -277,6 +283,7 @@ class MyApp(Adw.Application):
     self.auto_save_status.add_css_class('default-text')   
     main_save_box.append(self.auto_save_status)
     
+    #automatically creates a scrollable window if the content exceeds the predefined height
     scroll_window = Gtk.ScrolledWindow()
     scroll_window.set_policy(
       Gtk.PolicyType.NEVER,
@@ -301,7 +308,6 @@ class MyApp(Adw.Application):
     
     main_tag_box.append(main_tag_row)
     
-    
     self.tags_manage = Gtk.Box(orientation = Gtk.Orientation.VERTICAL,spacing = 10)
     self.tags_manage.add_css_class('tag-manage')
     scroll_window.set_child(self.tags_manage)
@@ -312,7 +318,6 @@ class MyApp(Adw.Application):
     
     page.append(main_save_box)
     page.append(main_tag_box)
-    
     
     self.auto_save_timer_value.connect("activate",self.auto_save_committed)
     self.auto_save_updated(self.auto_save_timer_value)
@@ -331,10 +336,12 @@ class MyApp(Adw.Application):
     label.add_css_class('page-titles')
     self.reports_page.append(label)
     
+    #string list is like the name suggests it create a list of strings that are passed to it
     tags = Gtk.StringList()
     for tag in self.tags_list:
       tags.append(tag["name"])
-      
+    
+    #that stringList is then passed to this dropdown, and upon selection of an option it then calls on_tag_selected with the selected option  
     dropdown = Gtk.DropDown(model = tags)
     dropdown.connect("notify::selected-item", self.on_tag_selected)
     
@@ -347,6 +354,7 @@ class MyApp(Adw.Application):
     
     self.show_box.append(self.ind_boxes_container)  
     
+    #by default it selects the first tag in the list
     dropdown.set_selected(0)
     self.on_tag_selected(dropdown, None)            
     
@@ -375,11 +383,15 @@ class MyApp(Adw.Application):
     
     secondary_page.append(blah)
     
+    #a dict called data is created and inserted with project name and hours spent on it resp.
     data = {}
     
     for stopwatch in self.projects:
       data[stopwatch.name] = int(stopwatch.accumulatedSeconds/3600)
     
+    #from the imported BarChart class object chart is created and then the data is passed to the update_data, 
+    #right now it is on app start only, but maybe later it weill also maybe connected to a timer like auto_save
+    #the chart object also subsequently stores the chart that is returned to it by update_data 
     chart = BarChart()
     chart.update_data(data)
     
@@ -407,6 +419,7 @@ class MyApp(Adw.Application):
     
     self.projects_list = Gtk.Box(orientation = Gtk.Orientation.VERTICAL, spacing = 8)
     
+    #Same as above, it will auto create a scrollable window/box if needed
     scroll = Gtk.ScrolledWindow()
     scroll.set_hexpand(True)
     scroll.set_vexpand(True)
@@ -418,21 +431,8 @@ class MyApp(Adw.Application):
       self.projects_list.append(project_widget)
     
     return page
-    
-  #boilerplate for upcoming pages
-  def create_page(self,name):
-      page = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing = 10)
-                  
-      page.set_margin_top(20)
-      page.set_margin_bottom(20)
-      page.set_margin_start(20)
-      page.set_margin_end(20)
-                  
-      label = Gtk.Label(label = name)
-      label.add_css_class('page-titles') 
-      page.append(label)
-      return page
   
+  #create the proejct and its children list in the projects page recursively  
   def create_project_only_for_ui(self, stopwatch):
     project = project_row(stopwatch)
     self.project_widgets[stopwatch.id] = project
@@ -445,16 +445,9 @@ class MyApp(Adw.Application):
       
     project.THE_button.connect("clicked",self.on_start_clicked, stopwatch)
     
-    # project.delete_button.connect("clicked", self.on_delete_clicked, stopwatch, project)
-    
-    # project.child_button.connect("clicked", self.on_add_child, stopwatch, project)
-    
     project.name_entry.connect("activate", self.edit_project_name, stopwatch, project)
     
-    # project.edit_button.connect("clicked", self.edit_project_name, stopwatch, project)
-    
     project.expand_collapse_button.connect("clicked", self.expand_collapse, project)
-    
     
     self.project_buttons[stopwatch.id] = project.THE_button
     self.project_label[stopwatch.id] = project.time_label
@@ -537,7 +530,7 @@ class MyApp(Adw.Application):
     else:
       button.set_label("Resume")
 
-  #The class which handles when a subtask or a task is resumed or started
+  #The function which handles when a subtask or a task is resumed or started
   def start_stopwatch(self, stopwatch):
     parent = stopwatch.parent
     
@@ -560,7 +553,7 @@ class MyApp(Adw.Application):
     self.project_widgets[stopwatch.id].update_active_state()
     self.update_button_label(stopwatch) 
   
-  #The class which handles when a subtask or a task is paused
+  #The function which handles when a subtask or a task is paused
   def pause_stopwatch(self, stopwatch):
     parent = stopwatch.parent
 
@@ -571,6 +564,14 @@ class MyApp(Adw.Application):
     for child in stopwatch.children:
       if child.running:
         self.pause_stopwatch(child)
+    
+    while parent is not None:
+      if parent.running:
+        parent.pause()
+        
+      self.project_widgets[parent.id].update_active_state()
+      self.update_button_label(parent)
+      parent = parent.parent
 
     if parent is not None:
       any_child_running = any(child.running for child in parent.children)

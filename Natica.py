@@ -383,19 +383,21 @@ class MyApp(Adw.Application):
     
     secondary_page.append(blah)
     
-    #a dict called data is created and inserted with project name and hours spent on it resp.
-    data = {}
+    blah2 = Gtk.Label(label = "(Refreshes every 5 minutes)")
+    secondary_page.append(blah2)
     
-    for stopwatch in self.projects:
-      data[stopwatch.name] = int(stopwatch.accumulatedSeconds/3600)
+    
+    self.chart = BarChart()
+    page.append(self.chart)
+
+    self.update_chart()
+    
+    self.chart_updating = GLib.timeout_add_seconds(300, self.update_chart)
     
     #from the imported BarChart class object chart is created and then the data is passed to the update_data, 
-    #right now it is on app start only, but maybe later it weill also maybe connected to a timer like auto_save
+    #right now it is on app start only, but maybe later it will also maybe connected to a timer like auto_save
     #the chart object also subsequently stores the chart that is returned to it by update_data 
-    chart = BarChart()
-    chart.update_data(data)
     
-    page.append(chart)
     
     return page
   
@@ -970,8 +972,19 @@ class MyApp(Adw.Application):
     total_time_tag.add_css_class("box-shadow")
     total_time_tag.add_css_class("default-text")
     self.show_box.append(total_time_tag)
+    
+  def update_chart(self):
+    print('charts baby ')
+    
+    #a dict called data is created and inserted with project name and hours spent on it resp.
+    self.data = {}
+    
+    for stopwatch in self.projects:
+      self.data[stopwatch.name] = stopwatch.accumulatedSeconds/3600
       
- 
+    self.chart.update_data(self.data)
+    return True
+     
       
 #If we consider the class Stopwatch to be the framework, this class is like how that framework is showed/displayed in the app
 class project_row(Gtk.Box):

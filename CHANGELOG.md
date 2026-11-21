@@ -87,3 +87,5 @@ November 18 - Added scale to the bar chart
 Novemeber 19 - Bug fix - Pausing a grand-child was not updating grand-parent and above
 
 November 19 - Code review and commenting/documentation
+
+November 21 - Chart now refreshes every 5 minutes

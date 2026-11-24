@@ -22,9 +22,6 @@ def resource_path(filename):
 
 Adw.init()
 
-Adw.StyleManager.get_default().set_color_scheme(
-    Adw.ColorScheme.FORCE_DARK
-)
 
 #Stopwatch framework and some core functions
 class Stopwatch:

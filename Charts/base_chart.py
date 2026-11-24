@@ -7,7 +7,7 @@ from gi.repository import Gtk
 class BaseChart(Gtk.DrawingArea):
     def __init__(self):
         super().__init__()
-        self.data = []
+        self.data = {}
         
         self.set_content_width(690)
         self.set_content_height(420)

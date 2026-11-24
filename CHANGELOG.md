@@ -89,3 +89,5 @@ Novemeber 19 - Bug fix - Pausing a grand-child was not updating grand-parent and
 November 19 - Code review and commenting/documentation
 
 November 21 - Chart now refreshes every 5 minutes
+
+November 25 - Made some changes for beter windows port

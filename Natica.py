@@ -4,6 +4,7 @@ import uuid
 import os
 import json
 import platform
+import sys
 from Charts.bar_chart import BarChart
 
 gi.require_version('Adw','1')
@@ -11,7 +12,19 @@ gi.require_version('Gtk','4.0')
 
 from gi.repository import Adw,Gtk,GLib,Gdk,Gio
 
+def resource_path(filename):
+    if getattr(sys, "frozen", False):
+        base = sys._MEIPASS
+    else:
+        base = os.path.dirname(os.path.abspath(__file__))
+
+    return os.path.join(base, filename)
+
 Adw.init()
+
+Adw.StyleManager.get_default().set_color_scheme(
+    Adw.ColorScheme.FORCE_DARK
+)
 
 #Stopwatch framework and some core functions
 class Stopwatch:
@@ -123,6 +136,7 @@ class MyApp(Adw.Application):
     self.project_label = {}
     self.project_buttons = {}
     self.project_widgets = {}
+    self.recent_projects = {}
     self.storage = Storage()
     self.projects, self.tags_list = self.storage.load()
     self.auto_save_timer_id = None
@@ -209,11 +223,8 @@ class MyApp(Adw.Application):
     #importing the css file 
     provider = Gtk.CssProvider()
 
-    css_path = os.path.join(
-      os.path.dirname(os.path.abspath(__file__)),
-      "main.css"
-    )
-
+    css_path = resource_path("main.css")
+    
     provider.load_from_path(css_path)
 
     Gtk.StyleContext.add_provider_for_display(
@@ -1210,8 +1221,13 @@ class project_row(Gtk.Box):
 class Storage:
   def __init__(self):
     if platform.system() == "Windows":
-      base_directory = os.environ.get("LOCALAPPDATA")
-      self.directory = os.path.join(base_directory,"Natica")
+      base_directory = os.environ.get(
+        "LOCALAPPDATA",
+        os.path.expanduser("~")
+      )
+      self.directory = os.path.join(
+        base_directory, "Natica"
+      )
     else:
       self.directory = os.path.expanduser("~/.local/share/natica")
 

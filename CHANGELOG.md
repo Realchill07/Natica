@@ -91,3 +91,5 @@ November 19 - Code review and commenting/documentation
 November 21 - Chart now refreshes every 5 minutes
 
 November 25 - Made some changes for beter windows port
+
+November 25 - Base for home page functionality

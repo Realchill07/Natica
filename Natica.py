@@ -133,7 +133,9 @@ class MyApp(Adw.Application):
     self.project_label = {}
     self.project_buttons = {}
     self.project_widgets = {}
-    self.recent_projects = {}
+    self.recent_projects = []
+    self.currently_running = False
+    self.ongoing_projects = []
     self.storage = Storage()
     self.projects, self.tags_list = self.storage.load()
     self.auto_save_timer_id = None
@@ -236,17 +238,25 @@ class MyApp(Adw.Application):
     self.timer_id = GLib.timeout_add(1000, self.on_tick)
     
   def create_home_page(self):
-    page = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing = 10)
+    self.home_page = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing = 10)
                 
-    page.set_margin_top(20)
-    page.set_margin_bottom(20)
-    page.set_margin_start(20)
-    page.set_margin_end(20)
+    self.home_page.set_margin_top(20)
+    self.home_page.set_margin_bottom(20)
+    self.home_page.set_margin_start(20)
+    self.home_page.set_margin_end(20)
                 
     label = Gtk.Label(label='Home')
     label.add_css_class('page-titles')
-    page.append(label)
-    return page
+    self.home_page.append(label)
+    
+    if self.currently_running:
+      self.currently_active_project()
+    else:
+      self.recently_accessed_projects()
+      
+    self.home_updating = GLib.timeout_add_seconds(300, self.update_home_page)
+
+    return self.home_page
   
   def create_settings_page(self):
     page = Gtk.Box(orientation = Gtk.Orientation.VERTICAL, spacing = 10)
@@ -992,6 +1002,24 @@ class MyApp(Adw.Application):
       
     self.chart.update_data(self.data)
     return True
+  
+  def currently_active_project(self):
+    active = self.ongoing_projects[-1].name
+    label = Gtk.Label(label = active)
+    self.home_page.append(label)
+    print('called1')
+    
+    return label
+  
+  def recently_accessed_projects(self):
+    if not self.ongoing_projects:
+      for projects in self.recent_projects:
+        label = Gtk.Label(label = projects.name)
+        self.home_page.append(label)
+    print('called2')
+    
+  def update_home_page(self):
+    pass
      
       
 #If we consider the class Stopwatch to be the framework, this class is like how that framework is showed/displayed in the app
@@ -1147,8 +1175,15 @@ class project_row(Gtk.Box):
   def update_active_state(self):
     if self.stopwatch.running:
       self.add_css_class('active-row')
+      self.app.currently_running = True
+      self.app.ongoing_projects.append(self.stopwatch)
+      self.app.recent_projects.append(self.stopwatch)
+      self.app.currently_active_project()
     else:
       self.remove_css_class('active-row')
+      self.app.currently_running = False
+      self.app.ongoing_projects.remove(self.stopwatch)
+      self.app.recently_accessed_projects()
         
   def on_right_click(self, gesture, n_press, x, y, stopwatch):
 
